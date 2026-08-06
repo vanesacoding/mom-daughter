@@ -1,0 +1,5 @@
+future-letter-worker/
+.DS_Store
+Thumbs.db
+*.log
+gen_splash.py

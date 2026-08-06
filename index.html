@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#FAF8F5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="是妈妈是女儿">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="apple-touch-startup-image" href="splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+  <link rel="apple-touch-startup-image" href="splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+  <link rel="apple-touch-startup-image" href="splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
+  <title>是妈妈，是女儿</title>
+  <style>
+    /* ========== Reset & Variables ========== */
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    :root {
+      --bg: #FAF8F5;
+      --primary: #E8D5B7;
+      --primary-dark: #D4B896;
+      --primary-light: #F5EBE0;
+      --card: #FFFFFF;
+      --text-main: #3D3530;
+      --text-sub: #8B7E74;
+      --text-hint: #B5A9A0;
+      --accent: #C97D7D;
+      --divider: #E8E0D8;
+      --shadow-soft: 0 2px 16px rgba(180, 160, 140, 0.07);
+      --shadow-card: 0 4px 24px rgba(180, 160, 140, 0.06);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --serif: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", serif;
+      --sans: -apple-system, BlinkMacSystemFont, "Noto Sans SC", "PingFang SC", "Segoe UI", sans-serif;
+      --nav-h: 56px;
+    }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: var(--sans);
+      background: var(--bg); color: var(--text-main);
+      font-size: 16px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ========== App Container ========== */
+    #app {
+      max-width: 480px; margin: 0 auto; height: 100vh; height: 100dvh;
+      position: relative; overflow: hidden; background: var(--bg);
+    }
+
+    /* ========== View System ========== */
+    .view {
+      position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+      opacity: 0; pointer-events: none; transition: opacity .35s ease;
+      -webkit-overflow-scrolling: touch;
+    }
+    .view.active { opacity: 1; pointer-events: auto; }
+    .view.has-nav { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 8px); }
+
+    .view-overlay {
+      z-index: 100; transform: translateX(100%); opacity: 1;
+      transition: transform .3s cubic-bezier(.32,.72,0,1);
+      background: var(--bg);
+    }
+    .view-overlay.active { transform: translateX(0); }
+
+    /* ========== Onboarding ========== */
+    #view-onboarding {
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg); z-index: 200; transition: opacity .5s ease;
+    }
+    .onboarding-content { padding: 40px 32px; text-align: center; }
+    .onboarding-logo {
+      font-family: var(--serif); font-size: 28px; font-weight: 600;
+      color: var(--text-main); margin-bottom: 40px; letter-spacing: 2px;
+    }
+    .onboarding-poem {
+      font-family: var(--serif); font-size: 15px; line-height: 2;
+      color: var(--text-sub); margin-bottom: 48px;
+    }
+    .onboarding-form { display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px; }
+    .onboarding-form input {
+      background: var(--card); border: 1px solid var(--divider);
+      border-radius: var(--radius-sm); padding: 14px 16px; font-size: 16px;
+      font-family: var(--sans); color: var(--text-main); text-align: center;
+      transition: border-color .2s; outline: none;
+    }
+    .onboarding-form input:focus { border-color: var(--primary); }
+    .onboarding-form input::placeholder { color: var(--text-hint); }
+    .onboarding-hint { font-size: 12px; color: var(--text-hint); margin-top: 16px; }
+
+    /* ========== Buttons ========== */
+    .btn-primary {
+      width: 100%; padding: 14px 24px; border: none; border-radius: var(--radius-sm);
+      background: var(--primary); color: var(--text-main); font-size: 16px;
+      font-family: var(--sans); font-weight: 600; cursor: pointer;
+      transition: all .2s; letter-spacing: 1px;
+    }
+    .btn-primary:active { transform: scale(.97); background: var(--primary-dark); }
+    .btn-primary:disabled { opacity: .5; }
+    .btn-generate { margin: 20px 0; }
+    .btn-save {
+      background: var(--text-main); color: var(--card); margin-top: 20px;
+    }
+    .btn-secondary {
+      width: 100%; padding: 12px 20px; border: 1px solid var(--divider); border-radius: var(--radius-sm);
+      background: transparent; color: var(--text-sub); font-size: 14px; font-family: var(--sans); cursor: pointer;
+    }
+    .result-actions { display: flex; gap: 10px; margin-top: 12px; }
+    .result-actions .btn-secondary { flex: 1; }
+    .letter-tools { display: flex; gap: 10px; margin-top: 10px; }
+    .letter-tools .btn-secondary { flex: 1; }
+    .record-date { width: 100%; margin-top: 10px; }
+
+    /* ========== Home Page ========== */
+    .home-header { text-align: center; padding: 48px 24px 32px; }
+    .home-title {
+      font-family: var(--serif); font-size: 22px; font-weight: 600;
+      color: var(--text-main); letter-spacing: 3px;
+    }
+    .home-title .heart { color: var(--accent); font-size: 18px; }
+    .home-date {
+      font-size: 13px; color: var(--text-hint); margin-top: 8px;
+      letter-spacing: 1px;
+    }
+    .home-cards { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
+
+    .info-card {
+      background: var(--card); border-radius: var(--radius);
+      padding: 20px; box-shadow: var(--shadow-card);
+    }
+    .card-label {
+      font-size: 11px; color: var(--text-hint); letter-spacing: 2px;
+      text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
+    }
+    .card-content { font-size: 16px; color: var(--text-main); line-height: 1.7; }
+
+    .baby-card .card-content { font-size: 17px; font-family: var(--serif); }
+    .baby-age { font-size: 20px; font-weight: 600; color: var(--text-main); }
+    .baby-age-sub { font-size: 13px; color: var(--text-sub); margin-top: 4px; }
+
+    .mood-prompt { font-size: 14px; color: var(--text-sub); margin-bottom: 12px; }
+    .mood-selector { display: flex; gap: 12px; justify-content: space-around; }
+    .mood {
+      font-size: 26px; cursor: pointer; transition: all .2s;
+      filter: grayscale(.5); opacity: .6;
+      background: none; border: 0; padding: 4px 2px; font-family: var(--sans);
+    }
+    .mood.selected { filter: none; opacity: 1; transform: scale(1.15); }
+    .mood:active { transform: scale(1.2); }
+    .mood-label { display: block; font-size: 10px; line-height: 1.2; margin-top: 2px; color: var(--text-sub); }
+
+    .parents-card .card-content { font-size: 14px; color: var(--text-sub); line-height: 1.8; font-style: italic; }
+
+    .home-actions { padding: 24px 20px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .action-btn {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--card); border: 1px solid var(--divider);
+      border-radius: var(--radius); padding: 16px 20px; cursor: pointer;
+      transition: all .2s; box-shadow: var(--shadow-soft);
+    }
+    .action-btn:active { transform: scale(.98); border-color: var(--primary); }
+    .action-icon { font-size: 20px; }
+    .action-label { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .action-arrow { margin-left: auto; color: var(--text-hint); font-size: 18px; }
+
+    /* ========== Overlay Pages (Recording) ========== */
+    .overlay-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top));
+      background: var(--bg); position: sticky; top: 0; z-index: 10;
+      border-bottom: 1px solid var(--divider);
+    }
+    .back-btn {
+      background: none; border: none; font-size: 28px; color: var(--text-sub);
+      cursor: pointer; padding: 4px 8px; line-height: 1;
+    }
+    .overlay-title { font-family: var(--serif); font-size: 18px; font-weight: 600; }
+    .overlay-content { padding: 24px 20px 40px; }
+
+    /* Upload area */
+    .upload-area {
+      border: 2px dashed var(--divider); border-radius: var(--radius);
+      min-height: 180px; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; cursor: pointer; transition: border-color .2s;
+      position: relative; background: var(--card);
+    }
+    .upload-area:active { border-color: var(--primary); }
+    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .upload-icon { font-size: 36px; opacity: .5; }
+    .upload-text { font-size: 14px; color: var(--text-hint); }
+    .upload-preview { width: 100%; max-height: 300px; object-fit: cover; border-radius: var(--radius); }
+
+    /* Text input */
+    .text-input {
+      width: 100%; border: 1px solid var(--divider); border-radius: var(--radius-sm);
+      padding: 16px; font-size: 16px; font-family: var(--sans); color: var(--text-main);
+      resize: none; outline: none; background: var(--card); line-height: 1.7;
+      transition: border-color .2s; margin-top: 16px;
+    }
+    .text-input:focus { border-color: var(--primary); }
+    .text-input::placeholder { color: var(--text-hint); }
+
+    .input-label { font-size: 14px; color: var(--text-sub); margin: 20px 0 8px; }
+
+    /* AI Result */
+    .ai-result {
+      min-height: 60px; padding: 0; margin-top: 8px;
+    }
+    .ai-result.has-content {
+      background: var(--card); border-radius: var(--radius); padding: 24px;
+      box-shadow: var(--shadow-card);
+    }
+    .ai-result p {
+      font-family: var(--serif); font-size: 16px; line-height: 1.9;
+      color: var(--text-main); margin-bottom: 12px;
+    }
+    .ai-result p:last-child { margin-bottom: 0; }
+
+    /* Thinking animation */
+    .thinking { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 24px; }
+    .thinking span {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--primary);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .thinking span:nth-child(2) { animation-delay: .2s; }
+    .thinking span:nth-child(3) { animation-delay: .4s; }
+    @keyframes pulse {
+      0%, 80%, 100% { transform: scale(.6); opacity: .4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+    .thinking-text { font-size: 13px; color: var(--text-hint); margin-left: 8px; }
+
+    /* Paragraph reveal animation */
+    .ai-paragraph {
+      opacity: 0; transform: translateY(8px);
+      animation: revealUp .5s ease forwards;
+    }
+    @keyframes revealUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ========== Timeline ========== */
+    .page-header { padding: 48px 24px 24px; }
+    .page-title { font-family: var(--serif); font-size: 22px; font-weight: 600; letter-spacing: 2px; }
+    .page-sub { font-size: 13px; color: var(--text-hint); margin-top: 6px; }
+
+    .timeline { padding: 0 20px 40px; }
+    .timeline-month {
+      display: flex; align-items: center; gap: 12px;
+      margin: 24px 0 16px; position: relative;
+    }
+    .timeline-month::before {
+      content: ''; position: absolute; left: 0; top: 50%; width: 4px; height: 4px;
+      border-radius: 50%; background: var(--primary);
+    }
+    .timeline-month-text {
+      font-family: var(--serif); font-size: 16px; font-weight: 600;
+      color: var(--text-sub); padding-left: 16px;
+    }
+    .timeline-line { flex: 1; height: 1px; background: var(--divider); }
+
+    .timeline-entry {
+      background: var(--card); border-radius: var(--radius);
+      box-shadow: var(--shadow-card); margin-bottom: 16px;
+      overflow: hidden; transition: transform .2s;
+    }
+    .timeline-entry:active { transform: scale(.99); }
+    .entry-photo { width: 100%; max-height: 280px; object-fit: cover; }
+    .entry-body { padding: 20px; }
+    .entry-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .entry-type { font-size: 11px; padding: 2px 10px; border-radius: 12px; background: var(--primary-light); color: var(--text-sub); }
+    .entry-date { font-size: 12px; color: var(--text-hint); }
+    .entry-text {
+      font-family: var(--serif); font-size: 15px; line-height: 1.8; color: var(--text-main);
+    }
+    .entry-text p { margin-bottom: 8px; }
+    .entry-text p:last-child { margin-bottom: 0; }
+
+    .entry-letter {
+      background: var(--card);
+      border: 2px solid var(--primary);
+    }
+    .entry-letter .entry-text { font-style: italic; }
+    .entry-mood { border-left: 4px solid var(--primary); }
+    .mood-entry-content { display: flex; align-items: center; gap: 12px; }
+    .mood-entry-emoji { font-size: 30px; line-height: 1; }
+    .mood-entry-label { font-size: 15px; color: var(--text-main); }
+    .entry-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+    .entry-delete { border: 0; background: none; color: var(--text-hint); font-family: var(--sans); font-size: 12px; padding: 4px; cursor: pointer; }
+
+    .empty-state {
+      text-align: center; padding: 80px 24px; color: var(--text-hint);
+    }
+    .empty-icon { font-size: 40px; opacity: .4; margin-bottom: 16px; }
+    .empty-text { font-size: 14px; line-height: 1.8; }
+    .privacy-note { font-size: 12px; color: var(--text-hint); line-height: 1.7; margin-top: 12px; }
+    .backup-section { padding: 8px 20px 24px; }
+    .backup-actions { display: flex; gap: 10px; }
+    .backup-actions .btn-secondary { flex: 1; }
+
+    /* ========== Bottom Navigation ========== */
+    #bottom-nav {
+      position: absolute; bottom: 0; left: 0; right: 0; height: var(--nav-h);
+      background: var(--card); border-top: 1px solid var(--divider);
+      display: none; z-index: 50;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    #bottom-nav.show { display: flex; }
+    .nav-tab {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 2px; background: none; border: none; cursor: pointer;
+      color: var(--text-hint); transition: color .2s; padding-top: 8px;
+    }
+    .nav-tab.active { color: var(--text-main); }
+    .nav-icon { font-size: 20px; line-height: 1; }
+    .nav-label { font-size: 10px; letter-spacing: 1px; }
+
+    /* ========== Toast ========== */
+    #toast {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(.9);
+      background: rgba(61, 53, 48, .9); color: #fff; padding: 12px 24px;
+      border-radius: var(--radius-sm); font-size: 14px; z-index: 999;
+      opacity: 0; pointer-events: none; transition: all .3s; white-space: nowrap;
+      max-width: 90vw;
+    }
+    #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+    /* ========== Scrollbar ========== */
+    .view::-webkit-scrollbar { width: 0; }
+
+    /* ========== A2HS Install Prompt ========== */
+    #a2hs-prompt {
+      position: fixed; bottom: 0; left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: 100%; max-width: 480px;
+      background: var(--card); border-top: 1px solid var(--divider);
+      padding: 16px 20px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
+      z-index: 200; box-shadow: 0 -4px 24px rgba(180, 160, 140, 0.1);
+      transition: transform .3s ease;
+    }
+    #a2hs-prompt.show { transform: translateX(-50%) translateY(0); }
+    .a2hs-close {
+      position: absolute; top: 4px; right: 8px;
+      background: none; border: none; font-size: 22px;
+      color: var(--text-hint); cursor: pointer; line-height: 1;
+    }
+    .a2hs-content { display: flex; align-items: center; gap: 12px; }
+    .a2hs-icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; }
+    .a2hs-text { flex: 1; }
+    .a2hs-title { font-size: 15px; font-weight: 600; color: var(--text-main); }
+    .a2hs-desc { font-size: 13px; color: var(--text-sub); line-height: 1.5; margin-top: 2px; }
+    .a2hs-btn {
+      background: var(--primary); border: none; border-radius: var(--radius-sm);
+      padding: 10px 16px; font-size: 14px; font-weight: 600;
+      color: var(--text-main); cursor: pointer; flex-shrink: 0;
+      font-family: var(--sans);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+
+    <!-- ========== Onboarding ========== -->
+    <section id="view-onboarding" class="view">
+      <div class="onboarding-content">
+        <div class="onboarding-logo">是妈妈，是女儿</div>
+        <p class="onboarding-poem">
+          每一个妈妈，同时也是一个女儿。<br>
+          成为妈妈以后，我们记录了孩子的成长，<br>
+          却很少记录自己的变化。
+        </p>
+        <div class="onboarding-form">
+          <input id="onb-baby-name" type="text" placeholder="宝宝的名字" maxlength="10">
+          <input id="onb-baby-birth" type="date">
+          <input id="onb-mom-name" type="text" placeholder="妈妈的名字（选填）" maxlength="10">
+        </div>
+        <button class="btn-primary" id="onb-start">开始记录</button>
+        <p class="onboarding-hint">所有记录仅保存在你的手机上，不会上传照片或文字</p>
+      </div>
+    </section>
+
+    <!-- ========== Home (Today) ========== -->
+    <section id="view-home" class="view has-nav">
+      <header class="home-header">
+        <h1 class="home-title">是妈妈，是女儿 <span class="heart">❤</span></h1>
+        <p class="home-date" id="home-date"></p>
+      </header>
+      <div class="home-cards">
+        <div class="info-card baby-card">
+          <div class="card-label">宝宝</div>
+          <div class="card-content" id="home-baby-info"></div>
+        </div>
+        <div class="info-card mom-card">
+          <div class="card-label">妈妈 · 今天的心情</div>
+          <div class="card-content">
+            <div class="mood-selector" id="mood-selector">
+              <button class="mood" data-mood="happy" aria-label="开心">😊<span class="mood-label">开心</span></button>
+              <button class="mood" data-mood="calm" aria-label="平静">😌<span class="mood-label">平静</span></button>
+              <button class="mood" data-mood="sad" aria-label="低落">😔<span class="mood-label">低落</span></button>
+              <button class="mood" data-mood="cry" aria-label="难过">😢<span class="mood-label">难过</span></button>
+              <button class="mood" data-mood="love" aria-label="幸福">🥰<span class="mood-label">幸福</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="info-card parents-card">
+          <div class="card-label">爸妈 · 作为女儿</div>
+          <div class="card-content" id="home-parents-prompt"></div>
+        </div>
+      </div>
+      <div class="home-actions">
+        <button class="action-btn" data-view="baby">
+          <span class="action-icon">📷</span>
+          <span class="action-label">记录宝宝</span>
+          <span class="action-arrow">›</span>
+        </button>
+        <button class="action-btn" data-view="letter">
+          <span class="action-icon">✉️</span>
+          <span class="action-label">写给未来</span>
+          <span class="action-arrow">›</span>
+        </button>
+        <button class="action-btn" data-view="diary">
+          <span class="action-icon">📝</span>
+          <span class="action-label">记录自己</span>
+          <span class="action-arrow">›</span>
+        </button>
+        <button class="action-btn" data-view="daughter">
+          <span class="action-icon">💌</span>
+          <span class="action-label">写给爸妈</span>
+          <span class="action-arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ========== Baby Story ========== -->
+    <section id="view-baby" class="view view-overlay">
+      <header class="overlay-header">
+        <button class="back-btn" data-back>‹</button>
+        <span class="overlay-title">记录宝宝</span>
+      </header>
+      <div class="overlay-content">
+        <div class="upload-area" id="baby-upload">
+          <input type="file" id="baby-photo-input" accept="image/*" style="display:none">
+          <div class="upload-placeholder" id="baby-upload-ph">
+            <span class="upload-icon">📷</span>
+            <span class="upload-text">上传宝宝的照片</span>
+          </div>
+          <img class="upload-preview" id="baby-photo-prev" style="display:none">
+        </div>
+        <div class="input-label">今天发生了什么？</div>
+        <textarea id="baby-text" class="text-input" placeholder="例如：今天第一次吃辅食，表情特别可爱。" rows="3"></textarea>
+        <button class="btn-primary btn-generate" id="baby-gen-btn">帮我写成成长故事</button>
+        <div class="ai-result" id="baby-result"></div>
+        <div class="result-actions" id="baby-result-actions" style="display:none">
+          <button class="btn-secondary" data-regenerate="baby">换一种写法</button>
+          <button class="btn-secondary" data-edit-result="baby">编辑文字</button>
+        </div>
+        <button class="btn-primary btn-save" id="baby-save-btn" style="display:none">保存这一页</button>
+        <p class="privacy-note">照片与文字只保存在此设备；当前版本会依据你的文字整理故事，不会分析照片内容。</p>
+      </div>
+    </section>
+
+    <!-- ========== Mom Diary ========== -->
+    <section id="view-diary" class="view view-overlay">
+      <header class="overlay-header">
+        <button class="back-btn" data-back>‹</button>
+        <span class="overlay-title">记录自己</span>
+      </header>
+      <div class="overlay-content">
+        <div class="input-label">今天，想写点什么？</div>
+        <textarea id="diary-text" class="text-input" placeholder="例如：今天很累，但是看到宝宝笑觉得值得。" rows="4"></textarea>
+        <button class="btn-primary btn-generate" id="diary-gen-btn">帮我整理成日记</button>
+        <div class="ai-result" id="diary-result"></div>
+        <div class="result-actions" id="diary-result-actions" style="display:none">
+          <button class="btn-secondary" data-regenerate="diary">换一种写法</button>
+          <button class="btn-secondary" data-edit-result="diary">编辑文字</button>
+        </div>
+        <button class="btn-primary btn-save" id="diary-save-btn" style="display:none">保存日记</button>
+      </div>
+    </section>
+
+    <!-- ========== Future Letter ========== -->
+    <section id="view-letter" class="view view-overlay">
+      <header class="overlay-header">
+        <button class="back-btn" data-back>‹</button>
+        <span class="overlay-title">给未来的信</span>
+      </header>
+      <div class="overlay-content">
+        <div class="input-label">想对未来的 ta 说什么？</div>
+        <textarea id="letter-text" class="text-input" placeholder="例如：今天你6个月，我第一次听见你叫妈妈。" rows="4"></textarea>
+        <div class="input-label">希望哪一天再打开？（仅作纪念提醒，仍可随时查看）</div>
+        <input id="letter-open-date" class="text-input record-date" type="date">
+        <button class="btn-primary btn-generate" id="letter-gen-btn">帮我写成一封信</button>
+        <div class="ai-result" id="letter-result"></div>
+        <div class="result-actions" id="letter-result-actions" style="display:none">
+          <button class="btn-secondary" data-regenerate="letter">换一种写法</button>
+          <button class="btn-secondary" data-edit-result="letter">编辑文字</button>
+        </div>
+        <div class="letter-tools" id="letter-tools" style="display:none">
+          <button class="btn-secondary" id="letter-calendar-btn">添加到日历</button>
+          <button class="btn-secondary" id="letter-email-btn">发送到邮箱</button>
+        </div>
+        <button class="btn-primary btn-save" id="letter-save-btn" style="display:none">保存这封信</button>
+        <p class="privacy-note">信会保存在本机。添加日历后，到期打开 App 查看，再由你决定是否发送给谁。</p>
+      </div>
+    </section>
+
+    <!-- ========== Daughter Note ========== -->
+    <section id="view-daughter" class="view view-overlay">
+      <header class="overlay-header">
+        <button class="back-btn" data-back>‹</button>
+        <span class="overlay-title">写给爸妈</span>
+      </header>
+      <div class="overlay-content">
+        <div class="input-label">今天，想对爸妈说点什么？</div>
+        <textarea id="daughter-text" class="text-input" placeholder="例如：今天想起妈妈做的红烧肉，也想起爸爸总是在门口等我回家。" rows="4"></textarea>
+        <button class="btn-primary btn-generate" id="daughter-gen-btn">帮我整理成一段心里话</button>
+        <div class="ai-result" id="daughter-result"></div>
+        <div class="result-actions" id="daughter-result-actions" style="display:none">
+          <button class="btn-secondary" data-regenerate="daughter">换一种写法</button>
+          <button class="btn-secondary" data-edit-result="daughter">编辑文字</button>
+        </div>
+        <button class="btn-primary btn-save" id="daughter-save-btn" style="display:none">保存这段心里话</button>
+      </div>
+    </section>
+
+    <!-- ========== Timeline ========== -->
+    <section id="view-timeline" class="view has-nav">
+      <header class="page-header">
+        <h1 class="page-title">家庭时光</h1>
+        <p class="page-sub">家庭生命记忆册</p>
+      </header>
+      <div class="timeline" id="timeline-list"></div>
+      <div class="backup-section">
+        <div class="backup-actions">
+          <button class="btn-secondary" id="export-data-btn">导出 JSON 备份</button>
+          <button class="btn-secondary" id="export-pdf-btn">导出精美日记 PDF</button>
+        </div>
+        <p class="privacy-note">换手机、清理浏览器数据前，请先导出备份。照片较多时，导出文件会较大。</p>
+      </div>
+    </section>
+
+    <!-- ========== Bottom Navigation ========== -->
+    <nav id="bottom-nav">
+      <button class="nav-tab active" data-nav="home">
+        <span class="nav-icon">🌿</span>
+        <span class="nav-label">今天</span>
+      </button>
+      <button class="nav-tab" data-nav="timeline">
+        <span class="nav-icon">📖</span>
+        <span class="nav-label">时光</span>
+      </button>
+    </nav>
+
+<!-- ========== Toast ========== -->
+<div id="toast"></div>
+
+<!-- ========== A2HS Install Prompt ========== -->
+<div id="a2hs-prompt">
+  <button class="a2hs-close" onclick="A2HS.dismiss()">×</button>
+  <div class="a2hs-content">
+    <img src="icon-192.png" class="a2hs-icon" alt="">
+    <div class="a2hs-text">
+      <div class="a2hs-title" id="a2hs-title">添加到桌面</div>
+      <div class="a2hs-desc" id="a2hs-desc">像 App 一样使用</div>
+    </div>
+    <button class="a2hs-btn" id="a2hs-btn" onclick="A2HS.install()">安装</button>
+  </div>
+</div>
+
+</div>
+
+  <script src="ai-engine.js"></script>
+  <script>
+    // ============================================================
+    // Utility Functions
+    // ============================================================
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const escapeHtml = (value = '') => String(value).replace(/[&<>'"]/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[char]));
+
+    function formatDate() {
+      const now = new Date();
+      const months = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+      const m = months[now.getMonth()];
+      const d = now.getDate();
+      return `${now.getFullYear()}年 ${m}${d}日`;
+    }
+
+    function todayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function downloadTextFile(filename, content, type = 'text/plain;charset=utf-8') {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function icsEscape(value = '') {
+      return String(value).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+    }
+
+    function addToCalendar(title, date, description) {
+      if (!date) { toast('请先选择希望重新打开的日期'); return; }
+      const start = new Date(`${date}T00:00:00Z`);
+      const end = new Date(start.getTime() + 86400000);
+      const dateValue = d => d.toISOString().slice(0, 10).replace(/-/g, '');
+      const ics = [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//是妈妈是女儿//未来信//CN',
+        'BEGIN:VEVENT', `UID:future-letter-${Date.now()}@mom-daughter`,
+        `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')}`,
+        `DTSTART;VALUE=DATE:${dateValue(start)}`, `DTEND;VALUE=DATE:${dateValue(end)}`,
+        `SUMMARY:${icsEscape(title)}`, `DESCRIPTION:${icsEscape(description)}`,
+        'END:VEVENT', 'END:VCALENDAR'
+      ].join('\r\n');
+      downloadTextFile(`未来信-${date}.ics`, ics, 'text/calendar;charset=utf-8');
+      toast('日历文件已下载，请导入手机日历');
+    }
+
+    async function shareLetter(title, text) {
+      if (navigator.share) {
+        try { await navigator.share({ title, text }); return; }
+        catch (error) { if (error.name === 'AbortError') return; }
+      }
+      window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(text)}`;
+    }
+
+    function calcBabyAge(birthDate) {
+      if (!birthDate) return null;
+      const birth = new Date(birthDate + 'T00:00:00');
+      const now = new Date();
+      const diffMs = now - birth;
+      if (diffMs < 0) return null;
+      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      if (days < 0) return null;
+      const months = Math.floor(days / 30.44);
+      const remainDays = days - Math.floor(months * 30.44);
+      return { months, days: remainDays, totalDays: days };
+    }
+
+    function ageText(age) {
+      if (!age) return '刚出生不久';
+      if (age.months === 0) return `出生${age.days}天`;
+      if (age.months < 12) return `${age.months}个月${age.days}天`;
+      const years = Math.floor(age.months / 12);
+      const remainMonths = age.months % 12;
+      return remainMonths > 0 ? `${years}岁${remainMonths}个月` : `${years}岁`;
+    }
+
+    function monthKey(dateStr) {
+      return dateStr.substring(0, 7); // YYYY-MM
+    }
+
+    function monthLabel(key) {
+      const [y, m] = key.split('-');
+      return `${y}年 ${parseInt(m)}月`;
+    }
+
+    function entryDateLabel(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      return `${d.getMonth()+1}月${d.getDate()}日`;
+    }
+
+    async function compressImage(file, maxW = 800, quality = 0.8) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let { width, height } = img;
+            if (width > maxW) {
+              height = Math.round(height * (maxW / width));
+              width = maxW;
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ============================================================
+    // State Management
+    // ============================================================
+    const STORE_KEY = 'mom-daughter-store';
+
+    const State = {
+      data: { profile: {}, records: [], moods: {} },
+
+      load() {
+        try {
+          const raw = localStorage.getItem(STORE_KEY);
+          if (raw) this.data = { profile: {}, records: [], moods: {}, ...JSON.parse(raw) };
+        } catch(e) { console.warn('Load state failed:', e); }
+      },
+
+      save() {
+        try {
+          localStorage.setItem(STORE_KEY, JSON.stringify(this.data));
+          return true;
+        } catch(e) { console.warn('Save state failed:', e); }
+        return false;
+      },
+
+      get isOnboarded() {
+        return !!(this.data.profile && this.data.profile.babyName);
+      },
+
+      get babyAge() {
+        return calcBabyAge(this.data.profile.babyBirth);
+      },
+
+      addRecord(record) {
+        record.id = 'r' + Date.now() + Math.random().toString(36).slice(2, 6);
+        record.createdAt = new Date().toISOString();
+        record.dateKey = todayKey();
+        this.data.records.unshift(record);
+        if (!this.save()) {
+          this.data.records.shift();
+          toast('存储空间不足，请先导出备份后清理部分照片');
+          return false;
+        }
+        return true;
+      },
+
+      setMood(mood) {
+        this.data.moods[todayKey()] = mood;
+        this.save();
+      },
+
+      getMood() {
+        return this.data.moods[todayKey()] || null;
+      },
+
+      deleteRecord(id) {
+        const index = this.data.records.findIndex(record => record.id === id);
+        if (index < 0) return false;
+        this.data.records.splice(index, 1);
+        return this.save();
+      }
+    };
+
+    // ============================================================
+    // View Router
+    // ============================================================
+    const Router = {
+      currentView: 'onboarding',
+      navViews: ['home', 'timeline'],
+
+    init() {
+      State.load();
+      if (State.isOnboarded) {
+        this.showNavView('home');
+      } else {
+        this.show('onboarding');
+      }
+
+        // Bottom nav
+        $$('.nav-tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            this.showNavView(tab.dataset.nav);
+          });
+        });
+
+        // Action buttons
+        $$('.action-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            this.openOverlay(btn.dataset.view);
+          });
+        });
+
+        // Back buttons
+        $$('[data-back]').forEach(btn => {
+          btn.addEventListener('click', () => this.closeOverlay());
+        });
+
+        // Mood selector
+        $$('.mood').forEach(m => {
+          m.addEventListener('click', () => {
+            $$('.mood').forEach(x => x.classList.remove('selected'));
+            m.classList.add('selected');
+            State.setMood(m.dataset.mood);
+          });
+        });
+      },
+
+      show(viewId) {
+        $$('.view').forEach(v => v.classList.remove('active'));
+        const view = $('#view-' + viewId);
+        if (view) view.classList.add('active');
+        this.currentView = viewId;
+        this.updateNav(viewId);
+      },
+
+      showNavView(viewId) {
+        // Close any overlay first
+        $$('.view-overlay').forEach(v => v.classList.remove('active'));
+
+        $$('.view').forEach(v => v.classList.remove('active'));
+        const view = $('#view-' + viewId);
+        if (view) view.classList.add('active');
+        this.currentView = viewId;
+        this.updateNav(viewId);
+
+        if (viewId === 'home') Home.render();
+        if (viewId === 'timeline') Timeline.render();
+      },
+
+      openOverlay(viewId) {
+        const view = $('#view-' + viewId);
+        if (view) {
+          view.classList.add('active');
+          this.currentView = viewId;
+          $('#bottom-nav').classList.remove('show');
+          // Reset the overlay state
+          if (viewId === 'baby') BabyStory.reset();
+          if (viewId === 'diary') MomDiary.reset();
+          if (viewId === 'letter') FutureLetter.reset();
+          if (viewId === 'daughter') DaughterNote.reset();
+        }
+      },
+
+      closeOverlay() {
+        $$('.view-overlay').forEach(v => v.classList.remove('active'));
+        // Return to previous nav view
+        const prevNav = $$('.nav-tab.active')[0];
+        const navView = prevNav ? prevNav.dataset.nav : 'home';
+        this.showNavView(navView);
+      },
+
+      updateNav(viewId) {
+        if (this.navViews.includes(viewId)) {
+          $('#bottom-nav').classList.add('show');
+        } else {
+          $('#bottom-nav').classList.remove('show');
+        }
+        $$('.nav-tab').forEach(tab => {
+          tab.classList.toggle('active', tab.dataset.nav === viewId);
+        });
+      }
+    };
+
+    // ============================================================
+    // Toast
+    // ============================================================
+    function toast(msg, duration = 2000) {
+      const el = $('#toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), duration);
+    }
+
+    // ============================================================
+    // Onboarding
+    // ============================================================
+    const Onboarding = {
+      init() {
+        $('#onb-start').addEventListener('click', () => {
+          const babyName = $('#onb-baby-name').value.trim();
+          const babyBirth = $('#onb-baby-birth').value;
+          const momName = $('#onb-mom-name').value.trim();
+
+          if (!babyName) { toast('请输入宝宝的名字'); $('#onb-baby-name').focus(); return; }
+          if (!babyBirth) { toast('请选择宝宝的生日'); $('#onb-baby-birth').focus(); return; }
+
+      State.data.profile = { babyName, babyBirth, momName };
+      State.save();
+      Router.showNavView('home');
+        });
+      }
+    };
+
+    // ============================================================
+    // Home Page
+    // ============================================================
+    const parentsPrompts = [
+      '今天有没有给爸妈打个电话？',
+      '上次回家是什么时候？',
+      '还记得妈妈做的那道菜吗？',
+      '爸爸说过什么让你记到现在的话？',
+      '多久没和爸妈一起吃饭了？',
+      '你有没有认真看过爸妈的白发？',
+      '今天想对爸妈说点什么吗？',
+      '你像妈妈还是像爸爸？',
+      '爸妈的生日快到了吗？',
+      '小时候妈妈最喜欢带你做什么？',
+      '你上一次让爸妈开心是什么时候？',
+      '如果只能对妈妈说一句话，你想说什么？',
+    ];
+
+    const Home = {
+      render() {
+        $('#home-date').textContent = formatDate();
+
+        // Baby info
+        const age = State.babyAge;
+        const name = State.data.profile.babyName || '宝宝';
+        if (age) {
+          $('#home-baby-info').innerHTML = `<span class="baby-age">${escapeHtml(name)} · ${escapeHtml(ageText(age))}</span>`;
+        } else {
+          $('#home-baby-info').innerHTML = `<span class="baby-age">${escapeHtml(name)}</span>`;
+        }
+
+        // Mood
+        const savedMood = State.getMood();
+        if (savedMood) {
+          $$('.mood').forEach(m => {
+            m.classList.toggle('selected', m.dataset.mood === savedMood);
+          });
+        } else {
+          $$('.mood').forEach(m => m.classList.remove('selected'));
+        }
+
+        // Parents prompt (rotate daily)
+        const dayIdx = Math.floor(Date.now() / 86400000);
+        $('#home-parents-prompt').textContent = parentsPrompts[dayIdx % parentsPrompts.length];
+      }
+    };
+
+    // ============================================================
+    // AI Result Display (paragraph reveal)
+    // ============================================================
+    async function showAIResult(containerId, text) {
+      const el = $('#' + containerId);
+      el.innerHTML = '<div class="thinking"><span></span><span></span><span></span><span class="thinking-text">正在书写…</span></div>';
+
+      await sleep(900);
+
+      el.innerHTML = '';
+      el.classList.add('has-content');
+      const paragraphs = text.split('\n\n').filter(p => p.trim());
+
+      for (let i = 0; i < paragraphs.length; i++) {
+        const p = document.createElement('p');
+        p.textContent = paragraphs[i].trim();
+        p.className = 'ai-paragraph';
+        p.style.animationDelay = (i * 0.1) + 's';
+        el.appendChild(p);
+        await sleep(350);
+      }
+    }
+
+    function resultText(containerId) {
+      return [...$('#' + containerId).querySelectorAll('p')]
+        .map(p => p.textContent.trim()).filter(Boolean).join('\n\n');
+    }
+
+    function toggleResultEdit(flow) {
+      const result = $('#' + flow.resultId);
+      const button = document.querySelector(`[data-edit-result="${flow.key}"]`);
+      const isEditing = result.dataset.editing === 'true';
+      if (isEditing) {
+        flow.aiText = resultText(flow.resultId);
+        result.querySelectorAll('p').forEach(p => p.contentEditable = 'false');
+        result.dataset.editing = 'false';
+        button.textContent = '编辑文字';
+        toast('修改已保留');
+      } else {
+        result.querySelectorAll('p').forEach(p => p.contentEditable = 'true');
+        result.dataset.editing = 'true';
+        button.textContent = '完成编辑';
+        result.querySelector('p')?.focus();
+      }
+    }
+
+    // ============================================================
+    // Baby Story Flow
+    // ============================================================
+    const BabyStory = {
+      key: 'baby',
+      resultId: 'baby-result',
+      photoData: null,
+      aiText: null,
+
+      init() {
+        const upload = $('#baby-upload');
+        const input = $('#baby-photo-input');
+
+        upload.addEventListener('click', () => input.click());
+
+        input.addEventListener('change', async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          try {
+            this.photoData = await compressImage(file);
+            $('#baby-photo-prev').src = this.photoData;
+            $('#baby-photo-prev').style.display = 'block';
+            $('#baby-upload-ph').style.display = 'none';
+          } catch(err) {
+            toast('图片加载失败');
+          }
+        });
+
+        $('#baby-gen-btn').addEventListener('click', () => this.generate());
+        $('#baby-save-btn').addEventListener('click', () => this.save());
+      },
+
+      reset() {
+        this.photoData = null;
+        this.aiText = null;
+        $('#baby-photo-input').value = '';
+        $('#baby-photo-prev').style.display = 'none';
+        $('#baby-upload-ph').style.display = 'flex';
+        $('#baby-text').value = '';
+        $('#baby-result').innerHTML = '';
+        $('#baby-result').classList.remove('has-content');
+        $('#baby-result-actions').style.display = 'none';
+        $('#baby-save-btn').style.display = 'none';
+        $('#baby-gen-btn').style.display = '';
+        $('#baby-gen-btn').disabled = false;
+      },
+
+      async generate() {
+        const text = $('#baby-text').value.trim();
+        if (!text) { toast('写点什么吧～'); return; }
+
+        const btn = $('#baby-gen-btn');
+        btn.disabled = true;
+        btn.textContent = '正在书写…';
+
+        const age = State.babyAge;
+        const ageStr = age ? ageText(age) : '还很小';
+        this.aiText = AIEngine.babyStory.generate(text, ageStr);
+
+        await showAIResult('baby-result', this.aiText);
+
+        btn.style.display = 'none';
+        $('#baby-result-actions').style.display = 'flex';
+        $('#baby-save-btn').style.display = '';
+      },
+
+      save() {
+        if (!this.aiText) return;
+        this.aiText = resultText(this.resultId) || this.aiText;
+        if (!State.addRecord({
+          type: 'baby',
+          userInput: $('#baby-text').value.trim(),
+          aiText: this.aiText,
+          photo: this.photoData
+        })) return;
+        toast('已保存到家庭时光 ♥');
+        setTimeout(() => Router.closeOverlay(), 800);
+      }
+    };
+
+    // ============================================================
+    // Mom Diary Flow
+    // ============================================================
+    const MomDiary = {
+      key: 'diary',
+      resultId: 'diary-result',
+      aiText: null,
+
+      init() {
+        $('#diary-gen-btn').addEventListener('click', () => this.generate());
+        $('#diary-save-btn').addEventListener('click', () => this.save());
+      },
+
+      reset() {
+        this.aiText = null;
+        $('#diary-text').value = '';
+        $('#diary-result').innerHTML = '';
+        $('#diary-result').classList.remove('has-content');
+        $('#diary-result-actions').style.display = 'none';
+        $('#diary-save-btn').style.display = 'none';
+        $('#diary-gen-btn').style.display = '';
+        $('#diary-gen-btn').disabled = false;
+      },
+
+      async generate() {
+        const text = $('#diary-text').value.trim();
+        if (!text) { toast('写点什么吧～'); return; }
+
+        const btn = $('#diary-gen-btn');
+        btn.disabled = true;
+        btn.textContent = '正在书写…';
+
+        this.aiText = AIEngine.momDiary.generate(text);
+
+        await showAIResult('diary-result', this.aiText);
+
+        btn.style.display = 'none';
+        $('#diary-result-actions').style.display = 'flex';
+        $('#diary-save-btn').style.display = '';
+      },
+
+      save() {
+        if (!this.aiText) return;
+        this.aiText = resultText(this.resultId) || this.aiText;
+        if (!State.addRecord({
+          type: 'mom',
+          userInput: $('#diary-text').value.trim(),
+          aiText: this.aiText
+        })) return;
+        toast('日记已保存 ♥');
+        setTimeout(() => Router.closeOverlay(), 800);
+      }
+    };
+
+    // ============================================================
+    // Future Letter Flow
+    // ============================================================
+    const FutureLetter = {
+      key: 'letter',
+      resultId: 'letter-result',
+      aiText: null,
+
+      init() {
+        $('#letter-gen-btn').addEventListener('click', () => this.generate());
+        $('#letter-save-btn').addEventListener('click', () => this.save());
+        $('#letter-calendar-btn').addEventListener('click', () => this.addToCalendar());
+        $('#letter-email-btn').addEventListener('click', () => this.shareByEmail());
+      },
+
+      reset() {
+        this.aiText = null;
+        $('#letter-text').value = '';
+        $('#letter-result').innerHTML = '';
+        $('#letter-result').classList.remove('has-content');
+        $('#letter-result-actions').style.display = 'none';
+        $('#letter-tools').style.display = 'none';
+        $('#letter-save-btn').style.display = 'none';
+        $('#letter-gen-btn').style.display = '';
+        $('#letter-gen-btn').disabled = false;
+        $('#letter-open-date').value = '';
+      },
+
+      async generate() {
+        const text = $('#letter-text').value.trim();
+        if (!text) { toast('写点什么吧～'); return; }
+
+        const btn = $('#letter-gen-btn');
+        btn.disabled = true;
+        btn.textContent = '正在书写…';
+
+        const babyName = State.data.profile.babyName || '宝贝';
+        const age = State.babyAge;
+        const ageStr = age ? ageText(age) : '刚出生';
+        this.aiText = AIEngine.futureLetter.generate(text, babyName, ageStr);
+
+        await showAIResult('letter-result', this.aiText);
+
+        btn.style.display = 'none';
+        $('#letter-result-actions').style.display = 'flex';
+        $('#letter-tools').style.display = 'flex';
+        $('#letter-save-btn').style.display = '';
+      },
+
+      addToCalendar() {
+        const text = resultText(this.resultId) || this.aiText || '';
+        const date = $('#letter-open-date').value;
+        const name = State.data.profile.babyName || '宝贝';
+        addToCalendar(`打开给${name}的未来信`, date, text);
+      },
+
+      shareByEmail() {
+        const text = resultText(this.resultId) || this.aiText || '';
+        if (!text) return;
+        shareLetter(`来自过去的一封信 · ${State.data.profile.babyName || '宝贝'}`, text);
+      },
+
+      save() {
+        if (!this.aiText) return;
+        this.aiText = resultText(this.resultId) || this.aiText;
+        if (!State.addRecord({
+          type: 'letter',
+          userInput: $('#letter-text').value.trim(),
+          aiText: this.aiText,
+          openDate: $('#letter-open-date').value || null
+        })) return;
+        toast('信已保存到家庭时光 ♥');
+        setTimeout(() => Router.closeOverlay(), 800);
+      }
+    };
+
+    // ============================================================
+    // Daughter Note Flow
+    // ============================================================
+    const DaughterNote = {
+      key: 'daughter',
+      resultId: 'daughter-result',
+      aiText: null,
+
+      init() {
+        $('#daughter-gen-btn').addEventListener('click', () => this.generate());
+        $('#daughter-save-btn').addEventListener('click', () => this.save());
+      },
+
+      reset() {
+        this.aiText = null;
+        $('#daughter-text').value = '';
+        $('#daughter-result').innerHTML = '';
+        $('#daughter-result').classList.remove('has-content');
+        $('#daughter-result-actions').style.display = 'none';
+        $('#daughter-save-btn').style.display = 'none';
+        $('#daughter-gen-btn').style.display = '';
+        $('#daughter-gen-btn').disabled = false;
+      },
+
+      async generate() {
+        const text = $('#daughter-text').value.trim();
+        if (!text) { toast('写点什么吧～'); return; }
+        const btn = $('#daughter-gen-btn');
+        btn.disabled = true;
+        btn.textContent = '正在整理…';
+        this.aiText = AIEngine.daughterNote.generate(text);
+        await showAIResult(this.resultId, this.aiText);
+        btn.style.display = 'none';
+        $('#daughter-result-actions').style.display = 'flex';
+        $('#daughter-save-btn').style.display = '';
+      },
+
+      save() {
+        if (!this.aiText) return;
+        this.aiText = resultText(this.resultId) || this.aiText;
+        if (!State.addRecord({ type: 'daughter', userInput: $('#daughter-text').value.trim(), aiText: this.aiText })) return;
+        toast('心里话已保存 ♥');
+        setTimeout(() => Router.closeOverlay(), 800);
+      }
+    };
+
+    // ============================================================
+    // Timeline
+    // ============================================================
+    const typeLabels = { baby: '宝宝记录', mom: '妈妈日记', letter: '给未来的信', daughter: '写给爸妈', mood: '今日心情' };
+    const moodLabels = { happy: '开心', calm: '平静', sad: '低落', cry: '难过', love: '幸福' };
+    const moodEmojis = { happy: '😊', calm: '😌', sad: '😔', cry: '😢', love: '🥰' };
+
+    const Timeline = {
+      render() {
+        const records = State.data.records || [];
+        const moodEntries = Object.entries(State.data.moods || {}).map(([dateKey, mood]) => ({
+          id: `mood-${dateKey}`, type: 'mood', dateKey, mood, createdAt: `${dateKey}T23:59:59.000Z`
+        }));
+        const allEntries = [...records, ...moodEntries];
+        const container = $('#timeline-list');
+
+        if (allEntries.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">📖</div>
+              <p class="empty-text">还没有记录。<br>从「今天」开始，写下第一页吧。</p>
+            </div>`;
+          return;
+        }
+
+        // Group by month
+        const groups = {};
+        allEntries.forEach(r => {
+          const key = monthKey(r.dateKey || r.createdAt.substring(0, 10));
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(r);
+        });
+
+        // Sort months descending
+        const sortedKeys = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+        let html = '';
+        for (const key of sortedKeys) {
+          html += `<div class="timeline-month"><span class="timeline-month-text">${monthLabel(key)}</span><span class="timeline-line"></span></div>`;
+          groups[key].sort((a, b) => (b.dateKey || '').localeCompare(a.dateKey || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+          for (const r of groups[key]) {
+            html += this.renderEntry(r);
+          }
+        }
+        container.innerHTML = html;
+      },
+
+      renderEntry(r) {
+        const label = typeLabels[r.type] || '记录';
+        const dateStr = r.dateKey || (r.createdAt ? r.createdAt.substring(0, 10) : '');
+        const dateLabel = entryDateLabel(dateStr);
+        if (r.type === 'mood') {
+          return `
+            <div class="timeline-entry entry-mood">
+              <div class="entry-body">
+                <div class="entry-meta">
+                  <span class="entry-type">${label}</span>
+                  <span class="entry-date">${dateLabel}</span>
+                </div>
+                <div class="mood-entry-content">
+                  <span class="mood-entry-emoji">${moodEmojis[r.mood] || '🙂'}</span>
+                  <span class="mood-entry-label">今天的心情：${escapeHtml(moodLabels[r.mood] || '未命名')}</span>
+                </div>
+              </div>
+            </div>`;
+        }
+        const paragraphs = r.aiText.split('\n\n').filter(p => p.trim())
+          .map(p => `<p>${escapeHtml(p.trim())}</p>`).join('');
+        const photoHtml = r.photo ? `<img class="entry-photo" alt="宝宝成长照片" src="${escapeHtml(r.photo)}">` : '';
+        const letterClass = r.type === 'letter' ? 'entry-letter' : '';
+        const openHint = r.type === 'letter' && r.openDate ? `<p>希望于 ${escapeHtml(entryDateLabel(r.openDate))} 再打开</p>` : '';
+
+        return `
+          <div class="timeline-entry ${letterClass}">
+            ${photoHtml}
+            <div class="entry-body">
+              <div class="entry-meta">
+                <span class="entry-type">${escapeHtml(label)}</span>
+                <span class="entry-date">${escapeHtml(dateLabel)}</span>
+              </div>
+              <div class="entry-text">${openHint}${paragraphs}</div>
+              <div class="entry-actions"><button class="entry-delete" data-delete-record="${escapeHtml(r.id)}">删除这条记录</button></div>
+            </div>
+          </div>`;
+      }
+    };
+
+    function exportBackup() {
+      const payload = {
+        app: '是妈妈，是女儿',
+        exportedAt: new Date().toISOString(),
+        data: State.data
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `是妈妈是女儿-备份-${todayKey()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast('备份已开始下载');
+    }
+
+    function exportDiaryPdf() {
+      const profile = State.data.profile || {};
+      const records = (State.data.records || []).map(record => ({ ...record }));
+      const moods = Object.entries(State.data.moods || {}).map(([dateKey, mood]) => ({
+        type: 'mood', dateKey, mood, createdAt: `${dateKey}T23:59:59.000Z`
+      }));
+      const entries = [...records, ...moods].sort((a, b) => {
+        const ad = a.dateKey || a.createdAt?.slice(0, 10) || '';
+        const bd = b.dateKey || b.createdAt?.slice(0, 10) || '';
+        return ad.localeCompare(bd) || (a.createdAt || '').localeCompare(b.createdAt || '');
+      });
+      const entryHtml = entries.length ? entries.map(entry => {
+        const date = entryDateLabel(entry.dateKey || entry.createdAt.slice(0, 10));
+        if (entry.type === 'mood') {
+          return `<article class="pdf-entry pdf-mood"><div class="pdf-date">${escapeHtml(date)}</div><div class="pdf-mood-line"><span>${moodEmojis[entry.mood] || '🙂'}</span><strong>今天的心情：${escapeHtml(moodLabels[entry.mood] || '未命名')}</strong></div></article>`;
+        }
+        const paragraphs = String(entry.aiText || '').split('\n\n').filter(Boolean)
+          .map(text => `<p>${escapeHtml(text.trim())}</p>`).join('');
+        const photo = entry.photo ? `<img class="pdf-photo" src="${escapeHtml(entry.photo)}" alt="宝宝成长照片">` : '';
+        return `<article class="pdf-entry"><div class="pdf-date">${escapeHtml(date)} · ${escapeHtml(typeLabels[entry.type] || '家庭记录')}</div>${photo}<div class="pdf-text">${paragraphs}</div></article>`;
+      }).join('') : '<p class="pdf-empty">还没有记录，从今天开始写下第一页吧。</p>';
+
+      const babyName = escapeHtml(profile.babyName || '宝宝');
+      const momName = profile.momName ? ` · ${escapeHtml(profile.momName)}` : '';
+      const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>是妈妈，是女儿 · 家庭时光</title>
+        <style>
+          @page { size: A4; margin: 18mm 16mm; }
+          * { box-sizing: border-box; }
+          body { margin: 0; color: #3d3530; background: #faf8f5; font-family: "Noto Serif SC", "Songti SC", serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .pdf-cover { min-height: 245mm; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; page-break-after: always; }
+          .pdf-heart { color: #c97d7d; font-size: 38px; margin-bottom: 24px; }
+          h1 { font-size: 30px; font-weight: 600; letter-spacing: 5px; margin: 0 0 18px; }
+          .pdf-subtitle { color: #8b7e74; font-size: 15px; letter-spacing: 2px; }
+          .pdf-profile { margin-top: 45px; color: #b5a9a0; font-size: 13px; }
+          .pdf-entry { background: #fff; border: 1px solid #e8e0d8; border-radius: 14px; padding: 18px 20px; margin: 0 0 16px; break-inside: avoid; }
+          .pdf-date { color: #b5a9a0; font-size: 11px; letter-spacing: 1px; margin-bottom: 11px; }
+          .pdf-text { font-size: 15px; line-height: 1.95; }
+          .pdf-text p { margin: 0 0 10px; }
+          .pdf-text p:last-child { margin-bottom: 0; }
+          .pdf-photo { display: block; max-width: 100%; max-height: 180mm; object-fit: contain; border-radius: 10px; margin: 0 auto 15px; }
+          .pdf-mood { background: #f5ebe0; border: 0; }
+          .pdf-mood-line { display: flex; align-items: center; gap: 12px; font-size: 15px; }
+          .pdf-mood-line span { font-size: 28px; }
+          .pdf-empty { text-align: center; color: #b5a9a0; padding: 40px 0; }
+          .pdf-footer { color: #b5a9a0; font-size: 10px; text-align: center; margin-top: 22px; }
+        </style></head><body>
+        <section class="pdf-cover"><div class="pdf-heart">♥</div><h1>是妈妈，是女儿</h1><div class="pdf-subtitle">家庭生命记忆册</div><div class="pdf-profile">${babyName}${momName}<br>生成于 ${escapeHtml(todayKey())}</div></section>
+        <main><h2>我们的时光</h2>${entryHtml}<div class="pdf-footer">每一个被记录的瞬间，都值得被好好珍藏。</div></main>
+        <scr${'ipt'}>window.addEventListener('load', function(){ setTimeout(function(){ window.focus(); window.print(); }, 250); });</scr${'ipt'}>
+      </body></html>`;
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) { toast('请允许弹出窗口后再试'); return; }
+      printWindow.document.write(html);
+      printWindow.document.close();
+      toast('正在准备日记 PDF，请在打印窗口选择“另存为 PDF”');
+    }
+
+    // ============================================================
+    // Init
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      Onboarding.init();
+      BabyStory.init();
+      MomDiary.init();
+      FutureLetter.init();
+      DaughterNote.init();
+      Router.init();
+
+      document.addEventListener('click', event => {
+        const regenerate = event.target.closest('[data-regenerate]');
+        const edit = event.target.closest('[data-edit-result]');
+        const remove = event.target.closest('[data-delete-record]');
+        const flows = { baby: BabyStory, diary: MomDiary, letter: FutureLetter, daughter: DaughterNote };
+        if (regenerate) flows[regenerate.dataset.regenerate]?.generate();
+        if (edit) toggleResultEdit(flows[edit.dataset.editResult]);
+        if (remove) {
+          if (confirm('确定删除这条记录吗？此操作无法撤销。') && State.deleteRecord(remove.dataset.deleteRecord)) {
+            Timeline.render();
+            toast('已删除');
+          }
+        }
+      });
+      $('#export-data-btn').addEventListener('click', exportBackup);
+      $('#export-pdf-btn').addEventListener('click', exportDiaryPdf);
+
+      // Service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
+      }
+    });
+  </script>
+</body>
+</html>
