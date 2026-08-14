@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5eee6">
+  <meta name="description" content="家事有着落：说一句话，家里的事就有安排。">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <title>家事有着落</title>
+  <style>
+    :root {
+      --bg: #f7f1ea; --card: #fffdfa; --ink: #4c4038; --sub: #89786b; --hint: #b3a398;
+      --line: #e8ddd2; --accent: #b88762; --accent-soft: #f1dfcf; --green: #7b9580;
+      --shadow: 0 10px 28px rgba(145, 114, 88, .10); --radius: 22px; --small-radius: 13px;
+      --sans: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", sans-serif;
+      --serif: "Songti SC", "STSong", "Noto Serif CJK SC", serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: var(--sans); }
+    body { display: flex; justify-content: center; }
+    button, textarea, input { font: inherit; }
+    button { cursor: pointer; }
+    .app { width: 100%; max-width: 520px; min-height: 100vh; background: var(--bg); position: relative; overflow: hidden; }
+    .screen { min-height: 100vh; padding: 0 20px 44px; overflow-y: auto; }
+    .topbar { padding: 42px 4px 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .brand-kicker { color: var(--hint); font-size: 11px; letter-spacing: 2px; font-weight: 600; }
+    .brand { margin: 6px 0 0; font-family: var(--serif); font-size: 26px; letter-spacing: 1px; }
+    .date-label { color: var(--hint); font-size: 12px; }
+    .hero { padding: 24px 20px 20px; background: linear-gradient(145deg, #fffdf9, #f3e4d7); border: 1px solid rgba(184,135,98,.24); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .hero-kicker { color: var(--accent); font-size: 12px; letter-spacing: 2px; font-weight: 600; }
+    .hero h1 { margin: 10px 0 6px; font-family: var(--serif); font-size: 28px; font-weight: 600; }
+    .hero p { margin: 0 0 16px; color: var(--sub); font-size: 13px; line-height: 1.7; }
+    .input-wrap { background: var(--card); border: 1px solid var(--line); border-radius: var(--small-radius); overflow: hidden; }
+    .main-input { width: 100%; min-height: 108px; padding: 15px; border: 0; resize: none; outline: none; color: var(--ink); background: transparent; line-height: 1.7; }
+    .main-input::placeholder { color: var(--hint); }
+    .hero-actions { display: flex; align-items: center; gap: 9px; margin-top: 12px; }
+    .category-row { display: flex; gap: 7px; overflow-x: auto; flex: 1; scrollbar-width: none; }
+    .category-row::-webkit-scrollbar { display: none; }
+    .category { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; padding: 8px 11px; color: var(--sub); background: rgba(255,255,255,.48); font-size: 12px; }
+    .category.selected { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+    .primary { border: 0; border-radius: var(--small-radius); padding: 12px 15px; background: var(--ink); color: #fffaf5; font-size: 13px; white-space: nowrap; }
+    .primary:disabled { opacity: .55; cursor: wait; }
+    .examples { padding: 17px 2px 0; color: var(--hint); font-size: 12px; line-height: 1.7; }
+    .example { display: inline-block; margin: 7px 7px 0 0; padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,253,250,.52); cursor: pointer; }
+    .template-row { display: flex; gap: 7px; overflow-x: auto; padding-top: 10px; scrollbar-width: none; }
+    .template-row::-webkit-scrollbar { display: none; }
+    .template { flex: 0 0 auto; padding: 8px 10px; border: 1px solid rgba(184,135,98,.26); border-radius: 999px; background: rgba(255,255,255,.55); color: var(--sub); font-size: 12px; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin: 28px 3px 12px; }
+    .section-title { font-family: var(--serif); font-size: 19px; }
+    .section-count { color: var(--hint); font-size: 12px; }
+    .task-list { display: flex; flex-direction: column; gap: 11px; }
+    .task-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 17px; box-shadow: var(--shadow); }
+    .task-card.done { opacity: .58; }
+    .task-card.done .task-title { text-decoration: line-through; }
+    .task-top { display: flex; align-items: flex-start; gap: 11px; }
+    .check { width: 22px; height: 22px; margin-top: 1px; border: 1px solid var(--accent); border-radius: 50%; background: transparent; color: #fff; flex: 0 0 auto; }
+    .check.checked { background: var(--accent); }
+    .task-main { min-width: 0; flex: 1; }
+    .task-title { font-family: var(--serif); font-size: 17px; line-height: 1.45; }
+    .task-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+    .tag { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 999px; background: #f5ece4; color: var(--sub); font-size: 11px; }
+    .tag.reminder { background: #edf2ec; color: #69816d; }
+    .task-detail { margin: 13px 0 0 33px; color: var(--sub); font-size: 13px; line-height: 1.75; }
+    .task-detail ul { margin: 4px 0 0; padding-left: 17px; }
+    .task-footer { display: flex; gap: 8px; margin: 14px 0 0 33px; }
+    .text-btn { border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; background: transparent; color: var(--sub); font-size: 12px; }
+    .text-btn.danger { color: #aa786d; }
+    .empty { padding: 45px 20px; text-align: center; color: var(--hint); font-size: 13px; line-height: 1.8; }
+    .empty-icon { font-size: 34px; opacity: .65; margin-bottom: 9px; }
+    .sheet-backdrop { position: fixed; inset: 0; display: none; align-items: flex-end; justify-content: center; background: rgba(60,46,38,.24); z-index: 20; }
+    .sheet-backdrop.show { display: flex; }
+    .sheet { width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; padding: 18px 20px calc(24px + env(safe-area-inset-bottom)); background: var(--bg); border-radius: 26px 26px 0 0; }
+    .sheet-handle { width: 38px; height: 4px; margin: 0 auto 18px; border-radius: 99px; background: var(--line); }
+    .sheet-head { display: flex; justify-content: space-between; align-items: center; }
+    .sheet-title { font-family: var(--serif); font-size: 21px; }
+    .close { border: 0; background: transparent; color: var(--hint); font-size: 25px; }
+    .result-card { margin-top: 16px; padding: 20px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .result-label { color: var(--hint); font-size: 11px; letter-spacing: 1.5px; font-weight: 600; }
+    .result-title { margin: 9px 0 15px; font-family: var(--serif); font-size: 24px; line-height: 1.45; }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .result-field { padding: 10px; border-radius: 11px; background: #f8f0e9; }
+    .field-label { color: var(--hint); font-size: 11px; }
+    .field-value { margin-top: 4px; color: var(--ink); font-size: 13px; line-height: 1.5; }
+    .result-field .form-input { margin-top: 4px; padding: 5px 6px; border-color: transparent; background: rgba(255,255,255,.7); font-size: 13px; }
+    .result-field .form-input:focus { border-color: var(--accent); }
+    .checklist { margin: 15px 0 0; padding: 13px 15px; border-radius: 12px; background: #f3f0e9; color: var(--sub); font-size: 13px; line-height: 1.7; }
+    .checklist strong { color: var(--ink); font-weight: 500; }
+    .checklist-input { width: 100%; min-height: 52px; margin-top: 7px; padding: 8px; border: 1px solid transparent; border-radius: 9px; resize: vertical; background: rgba(255,255,255,.62); color: var(--ink); outline: none; font-size: 13px; line-height: 1.6; }
+    .checklist-input:focus { border-color: var(--accent); }
+    .group-note { margin: -5px 3px 10px; color: var(--hint); font-size: 12px; }
+    .result-actions { display: flex; gap: 9px; margin-top: 13px; }
+    .result-actions button { flex: 1; }
+    .share-note { margin: 12px 2px 0; color: var(--hint); font-size: 12px; line-height: 1.6; }
+    .form-label { display: block; margin: 16px 0 7px; color: var(--sub); font-size: 13px; }
+    .form-input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--card); color: var(--ink); outline: none; }
+    .bottom-note { padding: 26px 4px 8px; color: var(--hint); font-size: 11px; line-height: 1.7; text-align: center; }
+    #toast { position: fixed; left: 50%; top: 50%; z-index: 100; transform: translate(-50%, -50%) scale(.94); opacity: 0; pointer-events: none; padding: 11px 18px; border-radius: 12px; background: rgba(76,64,56,.93); color: white; font-size: 13px; transition: all .2s; }
+    #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    @media (min-width: 521px) { .app { box-shadow: 0 0 40px rgba(145,114,88,.08); } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="screen">
+      <header class="topbar">
+        <div><div class="brand-kicker">AI 家庭行动助手</div><h1 class="brand">家事有着落</h1></div>
+        <div class="date-label" id="today-label"></div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-kicker">把想起的事，变成做得到的事</div>
+        <h2>把今天要做的事告诉我</h2>
+        <p>说一句话，家里的事就有安排。</p>
+        <div class="input-wrap">
+          <textarea id="main-input" class="main-input" rows="4" placeholder="例如：下周三带宝宝打疫苗，记得带接种证，提前一天提醒爸爸。"></textarea>
+        </div>
+        <div class="hero-actions">
+          <div class="category-row" id="category-row">
+            <button class="category selected" data-category="auto">自动分类</button>
+            <button class="category" data-category="childcare">育儿</button>
+            <button class="category" data-category="family">家庭</button>
+            <button class="category" data-category="shopping">购物</button>
+          </div>
+          <button class="primary" id="organize-btn">帮我整理</button>
+        </div>
+        <div class="examples">试试：
+          <span class="example" data-example="周六带宝宝去体检，要带社保卡，提前一天提醒我">宝宝体检</span>
+          <span class="example" data-example="奶粉快没了，下班买两罐">买奶粉</span>
+          <span class="example" data-example="明天提醒爸爸给宝宝洗澡">家庭分工</span>
+        </div>
+        <div class="template-row" aria-label="常用育儿事项模板">
+          <button class="template" data-template="checkup">🩺 宝宝体检</button>
+          <button class="template" data-template="vaccine">💉 疫苗接种</button>
+          <button class="template" data-template="outing">👜 带娃出门</button>
+          <button class="template" data-template="shopping">🛒 购物清单</button>
+        </div>
+      </section>
+
+      <div class="section-head"><h2 class="section-title">今天要做</h2><span class="section-count" id="task-count"></span></div>
+      <div class="task-list" id="today-list"></div>
+
+      <div class="section-head"><h2 class="section-title">接下来 7 天</h2><span class="section-count" id="upcoming-count"></span></div>
+      <p class="group-note">提前看一眼，心里会更有底。</p>
+      <div class="task-list" id="upcoming-list"></div>
+
+      <div class="section-head"><h2 class="section-title">待安排时间</h2><span class="section-count" id="unscheduled-count"></span></div>
+      <div class="task-list" id="unscheduled-list"></div>
+
+      <div class="section-head"><h2 class="section-title">全部事项</h2><span class="section-count" id="all-count"></span></div>
+      <div class="task-list" id="all-list"></div>
+      <div class="bottom-note">记录只保存在本机。日历提醒通过下载日历文件加入你的手机日历。</div>
+    </section>
+
+    <div class="sheet-backdrop" id="result-backdrop">
+      <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="result-title-label">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h2 class="sheet-title" id="result-title-label">整理好了</h2><button class="close" id="close-result" aria-label="关闭">×</button></div>
+        <div class="result-card">
+          <div class="result-label">事项</div>
+          <input id="result-title-input" class="form-input result-title" aria-label="事项名称">
+          <div class="result-grid">
+            <div class="result-field"><div class="field-label">类别</div><select id="result-category" class="form-input"><option value="childcare">育儿</option><option value="family">家庭</option><option value="shopping">购物</option><option value="other">其他</option></select></div>
+            <div class="result-field"><div class="field-label">负责人</div><select id="result-owner" class="form-input"><option value="">暂不指定</option><option value="我">我</option><option value="爸爸">爸爸</option><option value="妈妈">妈妈</option><option value="爷爷">爷爷</option><option value="奶奶">奶奶</option><option value="外公">外公</option><option value="外婆">外婆</option></select></div>
+            <div class="result-field"><div class="field-label">日期</div><input id="result-date-input" class="form-input" type="date"></div>
+            <div class="result-field"><div class="field-label">时间</div><input id="result-time-input" class="form-input" type="time"></div>
+            <div class="result-field"><div class="field-label">提醒日期</div><input id="result-reminder-input" class="form-input" type="date"></div>
+          </div>
+          <div class="checklist"><strong>需要准备</strong><textarea id="result-checklist-input" class="checklist-input" placeholder="每行一项，例如：接种证&#10;社保卡"></textarea></div>
+          <div class="result-actions"><button class="text-btn" id="calendar-btn">加入手机日历</button><button class="text-btn" id="share-btn">分享给家人</button></div>
+          <button class="primary" id="save-btn" style="width:100%; margin-top:10px">保存到我的事项</button>
+          <p class="share-note">保存后可以在首页勾选完成，也可以随时重新导出日历或分享。</p>
+        </div>
+      </section>
+    </div>
+    <div id="toast"></div>
+  </main>
+
+  <script src="ai-engine.js"></script>
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => [...document.querySelectorAll(selector)];
+    const STORE_KEY = 'family-action-assistant-store';
+    let selectedCategory = 'auto';
+    let draft = null;
+
+    const State = {
+      data: { tasks: [] },
+      load() { try { const raw = localStorage.getItem(STORE_KEY); if (raw) this.data = { tasks: [], ...JSON.parse(raw) }; } catch (e) { console.warn(e); } },
+      save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(this.data)); return true; } catch (e) { toast('本机存储空间不足'); return false; } },
+      add(task) { task.id = 'task-' + Date.now() + Math.random().toString(36).slice(2, 6); task.done = false; this.data.tasks.unshift(task); return this.save(); },
+      toggle(id) { const task = this.data.tasks.find(item => item.id === id); if (task) { task.done = !task.done; this.save(); } },
+      remove(id) { this.data.tasks = this.data.tasks.filter(item => item.id !== id); this.save(); }
+    };
+
+    const moodEmoji = '🌿';
+    function formatDate(date = new Date()) { return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }); }
+    function dateLabel(value) { if (!value) return '未安排日期'; const date = new Date(`${value}T00:00:00`); return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' }); }
+    function toast(message, duration = 1900) { const el = $('#toast'); el.textContent = message; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), duration); }
+    function escapeHtml(value = '') { return String(value).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c])); }
+    function icsEscape(value = '') { return String(value).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+    function downloadBlob(filename, blob) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 800); }
+
+    function calendarFile(task) {
+      if (!task.date) { toast('请先给事项安排一个日期'); return; }
+      const start = new Date(`${task.date}T${task.time || '09:00'}:00`);
+      const end = new Date(start.getTime() + 60 * 60 * 1000);
+      const compact = date => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+      const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//家事有着落//CN', 'BEGIN:VEVENT', `UID:${task.id || Date.now()}@family-action-assistant`, `DTSTAMP:${compact(new Date())}`, `DTSTART:${compact(start)}`, `DTEND:${compact(end)}`, `SUMMARY:${icsEscape(task.title)}`, `DESCRIPTION:${icsEscape(task.source || '')}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+      downloadBlob(`家庭事项-${task.date}.ics`, new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+      toast('日历文件已下载，请导入手机日历');
+    }
+
+    async function shareTask(task) {
+      const checklist = task.checklist.length ? `\n需要准备：${task.checklist.join('、')}` : '';
+      const owner = task.owner || (task.people && task.people[0]);
+      const text = `${owner ? `【${owner}】` : '【家庭事项】'} ${task.title}\n时间：${task.date ? dateLabel(task.date) : '待安排'}${task.reminderDate ? `\n提醒：${dateLabel(task.reminderDate)}` : ''}${checklist}`;
+      if (navigator.share) { try { await navigator.share({ title: '家庭事项', text }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+      try { await navigator.clipboard.writeText(text); toast('事项已复制，可以发给家人'); } catch (e) { window.location.href = `mailto:?subject=${encodeURIComponent(task.title)}&body=${encodeURIComponent(text)}`; }
+    }
+
+    function taskHtml(task) {
+      const owner = task.owner || (task.people && task.people[0]) || '';
+      const checklist = task.checklist.length ? `<ul>${task.checklist.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : '';
+      const detail = owner || checklist ? `<div class="task-detail">${owner ? `负责人：${escapeHtml(owner)}` : ''}${checklist}</div>` : '';
+      return `<article class="task-card ${task.done ? 'done' : ''}"><div class="task-top"><button class="check ${task.done ? 'checked' : ''}" data-toggle="${task.id}" aria-label="${task.done ? '取消完成' : '标记完成'}">${task.done ? '✓' : ''}</button><div class="task-main"><div class="task-title">${escapeHtml(task.title)}</div><div class="task-meta"><span class="tag">${escapeHtml(task.categoryLabel)}</span><span class="tag">${escapeHtml(task.date ? dateLabel(task.date) : '待安排')}</span>${owner ? `<span class="tag">${escapeHtml(owner)}负责</span>` : ''}${task.reminderDate ? `<span class="tag reminder">提前提醒</span>` : ''}</div></div></div>${detail}<div class="task-footer"><button class="text-btn" data-calendar="${task.id}">加入日历</button><button class="text-btn" data-share="${task.id}">分享</button><button class="text-btn danger" data-remove="${task.id}">删除</button></div></article>`;
+    }
+
+    function render() {
+      const tasks = State.data.tasks || [];
+      const today = new Date();
+      const todayKey = today.toISOString().slice(0, 10);
+      const nextWeek = new Date(today);
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      const nextWeekKey = nextWeek.toISOString().slice(0, 10);
+      const todayTasks = tasks.filter(task => !task.done && (!task.date || task.date <= todayKey));
+      const upcomingTasks = tasks.filter(task => !task.done && task.date && task.date > todayKey && task.date <= nextWeekKey);
+      const unscheduledTasks = tasks.filter(task => !task.done && !task.date);
+      $('#today-list').innerHTML = todayTasks.length ? todayTasks.map(taskHtml).join('') : `<div class="empty"><div class="empty-icon">${moodEmoji}</div>今天暂时没有待办。<br>把刚刚想起的事告诉我吧。</div>`;
+      $('#upcoming-list').innerHTML = upcomingTasks.length ? upcomingTasks.map(taskHtml).join('') : `<div class="empty"><div class="empty-icon">🌤️</div>接下来 7 天没有安排好的事项。</div>`;
+      $('#unscheduled-list').innerHTML = unscheduledTasks.length ? unscheduledTasks.map(taskHtml).join('') : `<div class="empty"><div class="empty-icon">🗓️</div>所有事项都有日期了。</div>`;
+      $('#all-list').innerHTML = tasks.length ? tasks.map(taskHtml).join('') : `<div class="empty"><div class="empty-icon">📝</div>还没有保存事项。</div>`;
+      $('#task-count').textContent = todayTasks.length ? `${todayTasks.length} 件` : '';
+      $('#upcoming-count').textContent = upcomingTasks.length ? `${upcomingTasks.length} 件` : '';
+      $('#unscheduled-count').textContent = unscheduledTasks.length ? `${unscheduledTasks.length} 件` : '';
+      $('#all-count').textContent = tasks.length ? `${tasks.length} 件` : '';
+      bindTaskActions();
+    }
+
+    function bindTaskActions() {
+      $$('[data-toggle]').forEach(button => button.onclick = () => { State.toggle(button.dataset.toggle); render(); });
+      $$('[data-remove]').forEach(button => button.onclick = () => { if (confirm('确定删除这件事吗？')) { State.remove(button.dataset.remove); render(); toast('已删除'); } });
+      $$('[data-calendar]').forEach(button => button.onclick = () => { const task = State.data.tasks.find(item => item.id === button.dataset.calendar); if (task) calendarFile(task); });
+      $$('[data-share]').forEach(button => button.onclick = () => { const task = State.data.tasks.find(item => item.id === button.dataset.share); if (task) shareTask(task); });
+    }
+
+    function showDraft(task) {
+      draft = task;
+      $('#result-title-input').value = task.title;
+      $('#result-category').value = task.category;
+      $('#result-owner').value = task.owner || task.people[0] || '';
+      $('#result-date-input').value = task.date || '';
+      $('#result-time-input').value = task.time || '';
+      $('#result-reminder-input').value = task.reminderDate || '';
+      $('#result-checklist-input').value = task.checklist.join('\n');
+      $('#result-backdrop').classList.add('show');
+    }
+
+    function closeResult() { $('#result-backdrop').classList.remove('show'); draft = null; }
+    function organize() {
+      const text = $('#main-input').value.trim();
+      if (!text) { toast('先告诉我一件想做的事吧'); $('#main-input').focus(); return; }
+      const button = $('#organize-btn'); button.disabled = true; button.textContent = '整理中…';
+      setTimeout(() => { showDraft(ActionAI.parse(text, selectedCategory)); button.disabled = false; button.textContent = '帮我整理'; }, 360);
+    }
+
+    const templates = {
+      checkup: { text: '下周三带宝宝去体检，要带社保卡，提前一天提醒我', category: 'childcare' },
+      vaccine: { text: '下周三带宝宝打疫苗，要带接种证，提前一天提醒爸爸', category: 'childcare' },
+      outing: { text: '今天带宝宝出门，准备纸巾、湿巾和水', category: 'childcare' },
+      shopping: { text: '奶粉快没了，下班买两罐', category: 'shopping' }
+    };
+
+    function syncDraftFromForm() {
+      if (!draft) return;
+      draft.title = $('#result-title-input').value.trim() || '家庭待办';
+      draft.category = $('#result-category').value;
+      draft.categoryLabel = ActionAI.categoryLabels[draft.category] || '其他';
+      draft.owner = $('#result-owner').value;
+      draft.date = $('#result-date-input').value;
+      draft.time = $('#result-time-input').value;
+      draft.reminderDate = $('#result-reminder-input').value;
+      draft.checklist = $('#result-checklist-input').value.split(/\n|、|,/).map(item => item.trim()).filter(Boolean);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      State.load(); $('#today-label').textContent = formatDate(); render();
+      $$('#category-row .category').forEach(button => button.onclick = () => { selectedCategory = button.dataset.category; $$('#category-row .category').forEach(item => item.classList.toggle('selected', item === button)); });
+      $$('.example').forEach(item => item.onclick = () => { $('#main-input').value = item.dataset.example; $('#main-input').focus(); });
+      $$('.template').forEach(button => button.onclick = () => { const template = templates[button.dataset.template]; if (!template) return; $('#main-input').value = template.text; selectedCategory = template.category; $$('#category-row .category').forEach(item => item.classList.toggle('selected', item.dataset.category === selectedCategory)); $('#main-input').focus(); });
+      $('#organize-btn').onclick = organize;
+      $('#close-result').onclick = closeResult;
+      $('#result-backdrop').onclick = event => { if (event.target === $('#result-backdrop')) closeResult(); };
+      ['result-title-input', 'result-category', 'result-owner', 'result-date-input', 'result-time-input', 'result-reminder-input', 'result-checklist-input'].forEach(id => { $('#' + id).addEventListener('input', syncDraftFromForm); });
+      $('#calendar-btn').onclick = () => { if (draft) { syncDraftFromForm(); calendarFile(draft); } };
+      $('#share-btn').onclick = () => { if (draft) { syncDraftFromForm(); shareTask(draft); } };
+      $('#save-btn').onclick = () => { if (!draft) return; syncDraftFromForm(); if (State.add({ ...draft })) { closeResult(); $('#main-input').value = ''; render(); toast('已保存到家庭事项'); } };
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
+    });
+  </script>
+</body>
+</html>

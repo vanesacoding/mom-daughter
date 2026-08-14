@@ -1,0 +1,13 @@
+{
+  "name": "家事有着落",
+  "short_name": "家事有着落",
+  "description": "说一句话，家里的事就有安排。",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f1ea",
+  "theme_color": "#f5eee6",
+  "lang": "zh-CN",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
