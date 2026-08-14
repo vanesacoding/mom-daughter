@@ -24,9 +24,13 @@
     .app { width: 100%; max-width: 520px; min-height: 100vh; background: var(--bg); position: relative; overflow: hidden; }
     .screen { min-height: 100vh; padding: 0 20px 44px; overflow-y: auto; }
     .topbar { padding: 42px 4px 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
     .brand-kicker { color: var(--hint); font-size: 11px; letter-spacing: 2px; font-weight: 600; }
     .brand { margin: 6px 0 0; font-family: var(--serif); font-size: 26px; letter-spacing: 1px; }
     .date-label { color: var(--hint); font-size: 12px; }
+    .install-trigger { border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; background: rgba(255,253,250,.72); color: var(--sub); font-size: 11px; white-space: nowrap; }
+    .install-trigger.ready { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+    .install-trigger[hidden] { display: none; }
     .hero { padding: 24px 20px 20px; background: linear-gradient(145deg, #fffdf9, #f3e4d7); border: 1px solid rgba(184,135,98,.24); border-radius: var(--radius); box-shadow: var(--shadow); }
     .hero-kicker { color: var(--accent); font-size: 12px; letter-spacing: 2px; font-weight: 600; }
     .hero h1 { margin: 10px 0 6px; font-family: var(--serif); font-size: 28px; font-weight: 600; }
@@ -92,6 +96,18 @@
     .result-actions { display: flex; gap: 9px; margin-top: 13px; }
     .result-actions button { flex: 1; }
     .share-note { margin: 12px 2px 0; color: var(--hint); font-size: 12px; line-height: 1.6; }
+    .install-backdrop { position: fixed; inset: 0; display: none; align-items: flex-end; justify-content: center; background: rgba(60,46,38,.24); z-index: 30; }
+    .install-backdrop.show { display: flex; }
+    .install-sheet { width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; padding: 18px 20px calc(24px + env(safe-area-inset-bottom)); background: var(--bg); border-radius: 26px 26px 0 0; }
+    .install-intro { margin: 8px 0 0; color: var(--sub); font-size: 13px; line-height: 1.7; }
+    .install-native { width: 100%; margin-top: 16px; }
+    .install-native[hidden] { display: none; }
+    .install-hint { margin: 10px 2px 0; color: var(--hint); font-size: 12px; line-height: 1.6; }
+    .install-guide { margin-top: 18px; padding: 15px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+    .install-guide-title { color: var(--ink); font-size: 13px; font-weight: 600; }
+    .install-guide ol { margin: 9px 0 0; padding-left: 20px; color: var(--sub); font-size: 12px; line-height: 1.9; }
+    .install-guide strong { color: var(--ink); font-weight: 600; }
+    .install-status { margin: 12px 2px 0; color: var(--green); font-size: 12px; line-height: 1.6; }
     .form-label { display: block; margin: 16px 0 7px; color: var(--sub); font-size: 13px; }
     .form-input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--card); color: var(--ink); outline: none; }
     .bottom-note { padding: 26px 4px 8px; color: var(--hint); font-size: 11px; line-height: 1.7; text-align: center; }
@@ -105,7 +121,7 @@
     <section class="screen">
       <header class="topbar">
         <div><div class="brand-kicker">AI 家庭行动助手</div><h1 class="brand">家事有着落</h1></div>
-        <div class="date-label" id="today-label"></div>
+        <div class="topbar-actions"><button class="install-trigger" id="install-trigger" aria-haspopup="dialog">↥ 安装应用</button><div class="date-label" id="today-label"></div></div>
       </header>
 
       <section class="hero">
@@ -173,6 +189,17 @@
         </div>
       </section>
     </div>
+    <div class="install-backdrop" id="install-backdrop">
+      <section class="install-sheet" role="dialog" aria-modal="true" aria-labelledby="install-title">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h2 class="sheet-title" id="install-title">把家事有着落放到桌面</h2><button class="close" id="close-install" aria-label="关闭安装引导">×</button></div>
+        <p class="install-intro">安装后可以像打开普通 App 一样使用，事项仍然只保存在你的设备上。</p>
+        <button class="primary install-native" id="native-install-btn" hidden>立即安装</button>
+        <p class="install-hint" id="install-hint"></p>
+        <div class="install-guide" id="install-guide"></div>
+        <p class="install-status" id="install-status" aria-live="polite"></p>
+      </section>
+    </div>
     <div id="toast"></div>
   </main>
 
@@ -183,6 +210,7 @@
     const STORE_KEY = 'family-action-assistant-store';
     let selectedCategory = 'auto';
     let draft = null;
+    let deferredInstallPrompt = null;
 
     const State = {
       data: { tasks: [] },
@@ -197,6 +225,30 @@
     function formatDate(date = new Date()) { return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }); }
     function dateLabel(value) { if (!value) return '未安排日期'; const date = new Date(`${value}T00:00:00`); return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' }); }
     function toast(message, duration = 1900) { const el = $('#toast'); el.textContent = message; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), duration); }
+    function isAppInstalled() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+    function isIosDevice() { return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+    function isAndroidDevice() { return /android/i.test(navigator.userAgent); }
+    function renderInstallGuide() {
+      const nativeButton = $('#native-install-btn');
+      const hint = $('#install-hint');
+      const guide = $('#install-guide');
+      if (deferredInstallPrompt) {
+        nativeButton.hidden = false;
+        hint.textContent = '当前浏览器支持一键安装。';
+      } else {
+        nativeButton.hidden = true;
+        hint.textContent = isIosDevice() ? 'Safari 暂不提供网页内一键安装，请按下面步骤操作。' : '如果没有看到一键安装按钮，请按下面步骤操作。';
+      }
+      if (isIosDevice()) {
+        guide.innerHTML = '<div class="install-guide-title">iPhone / iPad · Safari</div><ol><li>点击浏览器底部或顶部的<strong>分享</strong>按钮。</li><li>向下滑动，选择<strong>添加到主屏幕</strong>。</li><li>点击右上角<strong>添加</strong>，以后从桌面打开。</li></ol>';
+      } else if (isAndroidDevice()) {
+        guide.innerHTML = '<div class="install-guide-title">Android · Chrome</div><ol><li>点击右上角<strong>⋮</strong>菜单。</li><li>选择<strong>安装应用</strong>或<strong>添加到主屏幕</strong>。</li><li>确认后，从手机桌面打开。</li></ol>';
+      } else {
+        guide.innerHTML = '<div class="install-guide-title">电脑 · Chrome / Edge</div><ol><li>点击地址栏右侧的<strong>安装</strong>图标。</li><li>选择<strong>安装</strong>并确认。</li><li>以后可从桌面或开始菜单打开。</li></ol>';
+      }
+    }
+    function openInstallGuide() { renderInstallGuide(); $('#install-backdrop').classList.add('show'); }
+    function closeInstallGuide() { $('#install-backdrop').classList.remove('show'); }
     function escapeHtml(value = '') { return String(value).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c])); }
     function icsEscape(value = '') { return String(value).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
     function downloadBlob(filename, blob) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 800); }
@@ -295,6 +347,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       State.load(); $('#today-label').textContent = formatDate(); render();
+      if (isAppInstalled()) $('#install-trigger').hidden = true;
       $$('#category-row .category').forEach(button => button.onclick = () => { selectedCategory = button.dataset.category; $$('#category-row .category').forEach(item => item.classList.toggle('selected', item === button)); });
       $$('.example').forEach(item => item.onclick = () => { $('#main-input').value = item.dataset.example; $('#main-input').focus(); });
       $$('.template').forEach(button => button.onclick = () => { const template = templates[button.dataset.template]; if (!template) return; $('#main-input').value = template.text; selectedCategory = template.category; $$('#category-row .category').forEach(item => item.classList.toggle('selected', item.dataset.category === selectedCategory)); $('#main-input').focus(); });
@@ -305,8 +358,20 @@
       $('#calendar-btn').onclick = () => { if (draft) { syncDraftFromForm(); calendarFile(draft); } };
       $('#share-btn').onclick = () => { if (draft) { syncDraftFromForm(); shareTask(draft); } };
       $('#save-btn').onclick = () => { if (!draft) return; syncDraftFromForm(); if (State.add({ ...draft })) { closeResult(); $('#main-input').value = ''; render(); toast('已保存到家庭事项'); } };
+      $('#install-trigger').onclick = openInstallGuide;
+      $('#close-install').onclick = closeInstallGuide;
+      $('#install-backdrop').onclick = event => { if (event.target === $('#install-backdrop')) closeInstallGuide(); };
+      $('#native-install-btn').onclick = async () => {
+        if (!deferredInstallPrompt) { $('#install-status').textContent = '请使用上面的浏览器菜单完成安装。'; return; }
+        deferredInstallPrompt.prompt();
+        const result = await deferredInstallPrompt.userChoice;
+        if (result.outcome === 'accepted') { $('#install-status').textContent = '正在安装，完成后可从桌面打开。'; closeInstallGuide(); }
+        deferredInstallPrompt = null;
+      };
       if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
     });
+    window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); deferredInstallPrompt = event; const button = $('#install-trigger'); if (button) button.classList.add('ready'); });
+    window.addEventListener('appinstalled', () => { deferredInstallPrompt = null; const button = $('#install-trigger'); if (button) button.hidden = true; toast('已安装到设备'); });
   </script>
 </body>
 </html>

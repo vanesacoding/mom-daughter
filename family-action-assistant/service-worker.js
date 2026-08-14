@@ -1,4 +1,4 @@
-const CACHE_NAME = 'family-action-assistant-v2';
+const CACHE_NAME = 'family-action-assistant-v3';
 const ASSETS = ['./', './index.html', './ai-engine.js', './manifest.json', './icon.svg'];
 
 self.addEventListener('install', event => {
