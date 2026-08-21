@@ -10,14 +10,14 @@
   <title>家事有着落</title>
   <style>
     :root {
-      --bg: #f7f1ea; --card: #fffdfa; --ink: #4c4038; --sub: #89786b; --hint: #b3a398;
-      --line: #e8ddd2; --accent: #b88762; --accent-soft: #f1dfcf; --green: #7b9580;
+      --bg: #FAF7F2; --card: #FFFDF9; --ink: #403630; --sub: #75665C; --muted: #907F73; --hint: #907F73;
+      --line: #E8DDD2; --accent: #C58B63; --accent-soft: #F2E1D1; --green: #7F987F;
       --shadow: 0 10px 28px rgba(145, 114, 88, .10); --radius: 22px; --small-radius: 13px;
       --sans: -apple-system, BlinkMacSystemFont, "Microsoft YaHei", "PingFang SC", sans-serif;
       --serif: "Songti SC", "STSong", "Noto Serif CJK SC", serif;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: var(--sans); }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: var(--sans); overflow-x: hidden; }
     body { display: flex; justify-content: center; }
     button, textarea, input { font: inherit; }
     button { cursor: pointer; }
@@ -28,11 +28,11 @@
     .brand-kicker { color: var(--hint); font-size: 11px; letter-spacing: 1.5px; font-weight: 600; }
     .brand { margin: 6px 0 0; font-family: var(--serif); font-size: 26px; letter-spacing: 1px; }
     .date-label { color: var(--hint); font-size: 12px; }
-    .install-trigger { border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; background: rgba(255,253,250,.72); color: var(--sub); font-size: 11px; white-space: nowrap; }
+    .install-trigger { min-height: 40px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 11px; background: rgba(255,253,250,.72); color: var(--sub); font-size: 12px; white-space: nowrap; }
     .install-trigger.ready { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
     .install-trigger[hidden] { display: none; }
     .mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 0 0 14px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,253,250,.68); }
-    .mode-tab { min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--sub); font-size: 13px; }
+    .mode-tab { min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--sub); font-size: 14px; font-weight: 600; }
     .mode-tab.active { background: var(--ink); color: #fffaf5; box-shadow: 0 4px 10px rgba(76,64,56,.13); }
     .view-panel[hidden] { display: none; }
     .view-panel { animation: panel-in .18s ease-out; }
@@ -40,47 +40,46 @@
     .hero { padding: 24px 20px 20px; background: linear-gradient(145deg, #fffdf9, #f3e4d7); border: 1px solid rgba(184,135,98,.24); border-radius: var(--radius); box-shadow: var(--shadow); }
     .hero-kicker { color: var(--accent); font-size: 12px; letter-spacing: 2px; font-weight: 600; }
     .hero h2 { margin: 10px 0 6px; font-family: var(--serif); font-size: 26px; line-height: 1.35; font-weight: 600; }
-    .hero p { margin: 0 0 16px; color: var(--sub); font-size: 13px; line-height: 1.7; }
+    .hero p { margin: 0 0 16px; color: var(--sub); font-size: 15px; line-height: 1.65; }
     .input-wrap { background: var(--card); border: 1px solid var(--line); border-radius: var(--small-radius); overflow: hidden; }
     .main-input { width: 100%; min-height: 108px; padding: 15px; border: 0; resize: none; outline: none; color: var(--ink); background: transparent; line-height: 1.7; }
     .main-input::placeholder { color: var(--hint); }
-    .hero-actions { display: flex; align-items: center; gap: 9px; margin-top: 12px; }
-    .category-row { display: flex; gap: 7px; overflow-x: auto; flex: 1; scrollbar-width: none; }
-    .category-row::-webkit-scrollbar { display: none; }
-    .category { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; padding: 8px 11px; color: var(--sub); background: rgba(255,255,255,.48); font-size: 12px; }
+    .hero-actions { display: block; margin-top: 12px; }
+    #organize-btn { width: 100%; margin-top: 10px; }
+    .category-row { display: flex; flex-wrap: wrap; gap: 7px; width: 100%; }
+    .category { min-height: 40px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; color: var(--sub); background: rgba(255,255,255,.48); font-size: 13px; }
     .category.selected { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
-    .primary { border: 0; border-radius: var(--small-radius); padding: 12px 15px; background: var(--ink); color: #fffaf5; font-size: 13px; white-space: nowrap; }
+    .primary { min-height: 44px; border: 0; border-radius: var(--small-radius); padding: 12px 15px; background: var(--ink); color: #fffaf5; font-size: 14px; white-space: nowrap; }
     .primary:disabled { opacity: .55; cursor: wait; }
-    .examples { padding: 17px 2px 0; color: var(--hint); font-size: 12px; line-height: 1.7; }
+    .examples { padding: 17px 2px 0; color: var(--hint); font-size: 13px; line-height: 1.7; }
     .example { display: inline-block; margin: 7px 7px 0 0; padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,253,250,.52); cursor: pointer; }
-    .template-row { display: flex; gap: 7px; overflow-x: auto; padding-top: 10px; scrollbar-width: none; }
-    .template-row::-webkit-scrollbar { display: none; }
-    .template { flex: 0 0 auto; padding: 8px 10px; border: 1px solid rgba(184,135,98,.26); border-radius: 999px; background: rgba(255,255,255,.55); color: var(--sub); font-size: 12px; }
+    .template-row { display: flex; flex-wrap: wrap; gap: 7px; padding-top: 10px; }
+    .template { min-height: 40px; padding: 8px 11px; border: 1px solid rgba(197,139,99,.30); border-radius: 999px; background: rgba(255,255,255,.55); color: var(--sub); font-size: 13px; }
     .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
     .dashboard-card { display: flex; align-items: center; justify-content: space-between; min-height: 66px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 17px; background: rgba(255,253,250,.78); color: var(--ink); text-align: left; box-shadow: 0 6px 18px rgba(145,114,88,.06); }
     .dashboard-card:active { transform: translateY(1px); }
-    .dashboard-label { color: var(--sub); font-size: 12px; }
-    .dashboard-value { display: block; margin-top: 4px; font-family: var(--serif); font-size: 19px; }
+    .dashboard-label { color: var(--sub); font-size: 13px; }
+    .dashboard-value { display: block; margin-top: 4px; font-family: var(--sans); font-size: 20px; font-weight: 700; }
     .dashboard-arrow { color: var(--hint); font-size: 18px; }
     .section-head { display: flex; align-items: center; justify-content: space-between; margin: 28px 3px 12px; }
-    .section-title { font-family: var(--serif); font-size: 19px; }
+    .section-title { font-family: var(--serif); font-size: 20px; }
     .section-count { color: var(--hint); font-size: 12px; }
     .task-list { display: flex; flex-direction: column; gap: 11px; }
     .task-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 17px; box-shadow: var(--shadow); }
     .task-card.done { opacity: .58; }
     .task-card.done .task-title { text-decoration: line-through; }
     .task-top { display: flex; align-items: flex-start; gap: 11px; }
-    .check { width: 22px; height: 22px; margin-top: 1px; border: 1px solid var(--accent); border-radius: 50%; background: transparent; color: #fff; flex: 0 0 auto; }
+    .check { width: 40px; height: 40px; margin: -8px 0 0 -8px; padding: 0; border: 1px solid var(--accent); border-radius: 50%; background: transparent; color: #fff; font-size: 18px; flex: 0 0 auto; }
     .check.checked { background: var(--accent); }
     .task-main { min-width: 0; flex: 1; }
-    .task-title { font-family: var(--serif); font-size: 17px; line-height: 1.45; }
+    .task-title { font-family: var(--sans); font-size: 17px; line-height: 1.45; font-weight: 600; }
     .task-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
-    .tag { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 999px; background: #f5ece4; color: var(--sub); font-size: 11px; }
+    .tag { display: inline-flex; align-items: center; min-height: 26px; padding: 4px 9px; border-radius: 999px; background: #f5ece4; color: var(--sub); font-size: 12px; }
     .tag.reminder { background: #edf2ec; color: #69816d; }
-    .task-detail { margin: 13px 0 0 33px; color: var(--sub); font-size: 13px; line-height: 1.75; }
+    .task-detail { margin: 13px 0 0 40px; color: var(--sub); font-size: 14px; line-height: 1.7; }
     .task-detail ul { margin: 4px 0 0; padding-left: 17px; }
-    .task-footer { display: flex; gap: 8px; margin: 14px 0 0 33px; }
-    .text-btn { border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; background: transparent; color: var(--sub); font-size: 12px; }
+    .task-footer { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0 40px; }
+    .text-btn { min-height: 40px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px; background: transparent; color: var(--sub); font-size: 13px; }
     .text-btn.danger { color: #aa786d; }
     .empty { padding: 45px 20px; text-align: center; color: var(--hint); font-size: 13px; line-height: 1.8; }
     .empty-icon { font-size: 34px; opacity: .65; margin-bottom: 9px; }
@@ -93,10 +92,10 @@
     .close { border: 0; background: transparent; color: var(--hint); font-size: 25px; }
     .result-card { margin-top: 16px; padding: 20px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
     .result-label { color: var(--hint); font-size: 11px; letter-spacing: 1.5px; font-weight: 600; }
-    .result-title { margin: 9px 0 15px; font-family: var(--serif); font-size: 24px; line-height: 1.45; }
+    .result-title { margin: 9px 0 15px; font-family: var(--sans); font-size: 24px; line-height: 1.45; font-weight: 600; }
     .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
     .result-field { padding: 10px; border-radius: 11px; background: #f8f0e9; }
-    .field-label { color: var(--hint); font-size: 11px; }
+    .field-label { color: var(--sub); font-size: 12px; }
     .field-value { margin-top: 4px; color: var(--ink); font-size: 13px; line-height: 1.5; }
     .result-field .form-input { margin-top: 4px; padding: 5px 6px; border-color: transparent; background: rgba(255,255,255,.7); font-size: 13px; }
     .result-field .form-input:focus { border-color: var(--accent); }
@@ -120,22 +119,22 @@
     .install-guide ol { margin: 9px 0 0; padding-left: 20px; color: var(--sub); font-size: 12px; line-height: 1.9; }
     .install-guide strong { color: var(--ink); font-weight: 600; }
     .install-status { margin: 12px 2px 0; color: var(--green); font-size: 12px; line-height: 1.6; }
-    .form-label { display: block; margin: 16px 0 7px; color: var(--sub); font-size: 13px; }
-    .form-input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--card); color: var(--ink); outline: none; }
-    .bottom-note { padding: 26px 4px 8px; color: var(--hint); font-size: 11px; line-height: 1.7; text-align: center; }
+    .form-label { display: block; margin: 16px 0 7px; color: var(--sub); font-size: 14px; }
+    .form-input { width: 100%; min-height: 44px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--card); color: var(--ink); outline: none; font-size: 15px; }
+    .bottom-note { padding: 26px 4px 8px; color: var(--hint); font-size: 12px; line-height: 1.7; text-align: center; }
     .ledger-section { margin-top: 10px; }
     .ledger-summary { display: flex; align-items: center; justify-content: space-between; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, #fffdfa, #f4eadf); box-shadow: var(--shadow); }
     .ledger-summary-label { color: var(--sub); font-size: 12px; }
-    .ledger-total { margin-top: 5px; font-family: var(--serif); font-size: 28px; }
+    .ledger-total { margin-top: 5px; font-family: var(--sans); font-size: 30px; font-weight: 700; }
     .ledger-summary-note { color: var(--hint); font-size: 11px; }
     .ledger-list { display: flex; flex-direction: column; gap: 8px; margin-top: 11px; }
     .ledger-item { display: flex; align-items: center; gap: 11px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--card); }
     .ledger-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: var(--accent-soft); font-size: 17px; flex: 0 0 auto; }
     .ledger-main { min-width: 0; flex: 1; }
     .ledger-note { overflow: hidden; color: var(--ink); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
-    .ledger-meta { margin-top: 3px; color: var(--hint); font-size: 11px; }
+    .ledger-meta { margin-top: 3px; color: var(--hint); font-size: 12px; }
     .ledger-amount { color: var(--ink); font-size: 15px; font-weight: 600; }
-    .ledger-remove { border: 0; padding: 5px; background: transparent; color: var(--hint); font-size: 16px; }
+    .ledger-remove { min-width: 40px; min-height: 40px; border: 0; padding: 8px; background: transparent; color: var(--hint); font-size: 18px; }
     .ledger-backdrop { position: fixed; inset: 0; display: none; align-items: flex-end; justify-content: center; background: rgba(60,46,38,.24); z-index: 35; }
     .ledger-backdrop.show { display: flex; }
     .ledger-sheet { width: 100%; max-width: 520px; padding: 18px 20px calc(24px + env(safe-area-inset-bottom)); background: var(--bg); border-radius: 26px 26px 0 0; }
@@ -157,18 +156,18 @@
         <div class="topbar-actions"><button class="install-trigger" id="install-trigger" aria-haspopup="dialog">↥ 安装应用</button><div class="date-label" id="today-label"></div></div>
       </header>
 
-      <nav class="mode-tabs" aria-label="功能板块">
-        <button class="mode-tab active" data-panel="todo" aria-selected="true">待办事项</button>
-        <button class="mode-tab" data-panel="ledger" aria-selected="false">家庭记账</button>
+      <nav class="mode-tabs" role="tablist" aria-label="功能板块">
+        <button class="mode-tab active" role="tab" id="todo-tab" data-panel="todo" aria-controls="todo-panel" aria-selected="true">待办事项</button>
+        <button class="mode-tab" role="tab" id="ledger-tab" data-panel="ledger" aria-controls="ledger-panel" aria-selected="false">家庭记账</button>
       </nav>
 
-      <section class="view-panel" id="todo-panel" data-panel-view="todo">
+      <section class="view-panel" id="todo-panel" role="tabpanel" aria-labelledby="todo-tab" data-panel-view="todo">
       <section class="hero">
         <div class="hero-kicker">把想起的事，变成做得到的事</div>
         <h2>把今天要做的事告诉我</h2>
         <p>说一句话，家里的事就有安排。</p>
         <div class="input-wrap">
-          <textarea id="main-input" class="main-input" rows="4" placeholder="例如：下周三带宝宝打疫苗，记得带接种证，提前一天提醒爸爸。"></textarea>
+          <textarea id="main-input" class="main-input" rows="4" placeholder="把想起的事告诉我……&#10;例如：下周三带宝宝打疫苗，提前一天提醒爸爸。"></textarea>
         </div>
         <div class="hero-actions">
           <div class="category-row" id="category-row">
@@ -193,7 +192,7 @@
       </section>
 
       <section class="dashboard" aria-label="家庭概览">
-        <button class="dashboard-card" id="todo-summary-btn"><span><span class="dashboard-label">未完成待办</span><strong class="dashboard-value" id="dashboard-task-count">0 件</strong></span><span class="dashboard-arrow">›</span></button>
+        <button class="dashboard-card" id="todo-summary-btn"><span><span class="dashboard-label">今日未完成</span><strong class="dashboard-value" id="dashboard-task-count">0 件</strong></span><span class="dashboard-arrow">›</span></button>
         <button class="dashboard-card" id="ledger-summary-btn"><span><span class="dashboard-label">本月家庭支出</span><strong class="dashboard-value" id="dashboard-month-total">¥0</strong></span><span class="dashboard-arrow">›</span></button>
       </section>
 
@@ -207,10 +206,10 @@
       <div class="section-head"><h2 class="section-title">待安排时间</h2><span class="section-count" id="unscheduled-count"></span></div>
       <div class="task-list" id="unscheduled-list"></div>
 
-      <div class="section-head"><h2 class="section-title">全部事项</h2><span class="section-count" id="all-count"></span></div>
+      <div class="section-head"><h2 class="section-title">更多事项</h2><span class="section-count" id="all-count"></span></div>
       <div class="task-list" id="all-list"></div>
       </section>
-      <section class="view-panel" id="ledger-panel" data-panel-view="ledger" hidden>
+      <section class="view-panel" id="ledger-panel" role="tabpanel" aria-labelledby="ledger-tab" data-panel-view="ledger" hidden>
       <section class="ledger-section" id="ledger-section" aria-labelledby="ledger-title">
         <div class="section-head"><h2 class="section-title" id="ledger-title">家庭记账</h2><button class="text-btn" id="add-ledger-btn">＋ 记一笔</button></div>
         <div class="ledger-summary"><div><div class="ledger-summary-label" id="ledger-month-label">本月支出</div><div class="ledger-total" id="ledger-total">¥0</div></div><div class="ledger-summary-note">最近 5 笔</div></div>
@@ -320,8 +319,6 @@
       const list = expenses.slice(0, 5);
       $('#ledger-list').innerHTML = list.length ? list.map(item => `<div class="ledger-item"><div class="ledger-icon">${ledgerCategoryIcons[item.category] || '🧾'}</div><div class="ledger-main"><div class="ledger-note">${escapeHtml(item.note || ledgerCategoryLabels[item.category] || '家庭支出')}</div><div class="ledger-meta">${escapeHtml(item.date || '')} · ${escapeHtml(ledgerCategoryLabels[item.category] || '其他')} · ${escapeHtml(item.payer || '我')}支付</div></div><div class="ledger-amount">${money(item.amount)}</div><button class="ledger-remove" data-ledger-remove="${item.id}" aria-label="删除这笔支出">×</button></div>`).join('') : '<div class="empty"><div class="empty-icon">🧾</div>还没有记过账。<br>先记下第一笔家庭支出吧。</div>';
       $$('[data-ledger-remove]').forEach(button => button.onclick = () => { Ledger.remove(button.dataset.ledgerRemove); renderLedger(); toast('已删除这笔支出'); });
-      const pending = (State.data.tasks || []).filter(item => !item.done).length;
-      $('#dashboard-task-count').textContent = `${pending} 件`;
     }
     function openLedger() { $('#ledger-date').value = localDateKey(); $('#ledger-amount').value = ''; $('#ledger-note').value = ''; $('#ledger-backdrop').classList.add('show'); setTimeout(() => $('#ledger-amount').focus(), 100); }
     function closeLedger() { $('#ledger-backdrop').classList.remove('show'); }
@@ -388,7 +385,7 @@
     function render() {
       const tasks = State.data.tasks || [];
       const today = new Date();
-      const todayKey = today.toISOString().slice(0, 10);
+      const todayKey = localDateKey(today);
       const nextWeek = new Date(today);
       nextWeek.setDate(nextWeek.getDate() + 7);
       const nextWeekKey = nextWeek.toISOString().slice(0, 10);
@@ -400,6 +397,7 @@
       $('#unscheduled-list').innerHTML = unscheduledTasks.length ? unscheduledTasks.map(taskHtml).join('') : `<div class="empty"><div class="empty-icon">🗓️</div>所有事项都有日期了。</div>`;
       $('#all-list').innerHTML = tasks.length ? tasks.map(taskHtml).join('') : `<div class="empty"><div class="empty-icon">📝</div>还没有保存事项。</div>`;
       $('#task-count').textContent = todayTasks.length ? `${todayTasks.length} 件` : '';
+      $('#dashboard-task-count').textContent = `${todayTasks.length} 件`;
       $('#upcoming-count').textContent = upcomingTasks.length ? `${upcomingTasks.length} 件` : '';
       $('#unscheduled-count').textContent = unscheduledTasks.length ? `${unscheduledTasks.length} 件` : '';
       $('#all-count').textContent = tasks.length ? `${tasks.length} 件` : '';
