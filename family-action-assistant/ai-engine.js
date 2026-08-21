@@ -222,6 +222,7 @@ const SmartEntryAI = {
     if (!raw) return [];
     const normalized = raw
       .replace(/(?:并且|另外|同时|然后)\s*(?=(?:记得|提醒|别忘了|还要|需要))/g, '，')
+      .replace(/(\d)\s*(?=(?:记得|提醒|别忘了|还要|需要))/g, '$1，')
       .replace(/\s+(?=(?:记得|提醒|别忘了|还要|需要))/g, '，');
     const rawParts = normalized.split(/[，,。；;]+/).map(item => item.trim()).filter(Boolean);
     const parts = [];
