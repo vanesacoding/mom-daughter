@@ -200,6 +200,12 @@ const LedgerAI = {
       .trim()
       .slice(0, 40);
     return { amount, date: this._dateFromText(raw), category, payer, note: note || this.categoryLabels[category] };
+  },
+
+  isLikelyExpense(text) {
+    const raw = String(text || '').trim();
+    if (!raw || !this.parse(raw).amount) return false;
+    return /花了|用了|付了|支付|付款|消费|支出|买菜|餐费|药费|打车费|元|块钱|块/.test(raw);
   }
 };
 

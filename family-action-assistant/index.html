@@ -187,11 +187,11 @@
 
       <section class="view-panel" id="todo-panel" role="tabpanel" aria-labelledby="todo-tab" data-panel-view="todo">
       <section class="hero">
-        <div class="hero-kicker">把想起的事，变成做得到的事</div>
+        <div class="hero-kicker">说一句话，自动判断是待办还是记账</div>
         <h2>把今天要做的事告诉我</h2>
-        <p>说一句话，家里的事就有安排。</p>
+        <p>带日期的是待办，带金额的是记账。</p>
         <div class="input-wrap">
-          <textarea id="main-input" class="main-input" rows="4" placeholder="把想起的事告诉我……&#10;例如：下周三带宝宝打疫苗，提前一天提醒爸爸。"></textarea>
+          <textarea id="main-input" class="main-input" rows="4" placeholder="把想起的事告诉我……&#10;例如：明天带宝宝打疫苗，或今天买菜花了 86 元。"></textarea>
         </div>
         <div class="hero-actions">
           <div class="category-row" id="category-row">
@@ -206,6 +206,7 @@
           <span class="example" data-example="周六带宝宝去体检，要带社保卡，提前一天提醒我">宝宝体检</span>
           <span class="example" data-example="奶粉快没了，下班买两罐">买奶粉</span>
           <span class="example" data-example="明天提醒爸爸给宝宝洗澡">家庭分工</span>
+          <span class="example" data-example="今天买菜花了86元，妈妈付的">买菜记账</span>
         </div>
         <div class="template-row" aria-label="常用育儿事项模板">
           <button class="template" data-template="checkup">🩺 宝宝体检</button>
@@ -393,7 +394,8 @@
       const amount = Number($('#ledger-amount').value);
       if (!Number.isFinite(amount) || amount <= 0) { toast('先填一个有效的支出金额'); $('#ledger-amount').focus(); return; }
       const expense = { amount: Math.round(amount * 100) / 100, date: $('#ledger-date').value || localDateKey(), category: $('#ledger-category').value, payer: $('#ledger-payer').value, note: $('#ledger-note').value.trim() };
-      if (Ledger.add(expense)) { closeLedger(); renderLedger(); toast('已记下这笔支出'); }
+      const smartText = $('#ledger-smart-input').value.trim();
+      if (Ledger.add(expense)) { if ($('#main-input').value.trim() === smartText) $('#main-input').value = ''; closeLedger(); renderLedger(); toast('已记下这笔支出'); }
     }
     function renderInstallGuide() {
       const nativeButton = $('#native-install-btn');
@@ -512,8 +514,12 @@
     function organize() {
       const text = $('#main-input').value.trim();
       if (!text) { toast('先告诉我一件想做的事吧'); $('#main-input').focus(); return; }
-      const button = $('#organize-btn'); button.disabled = true; button.textContent = '整理中…';
-      setTimeout(() => { showDraft(ActionAI.parse(text, selectedCategory)); button.disabled = false; button.textContent = '帮我整理'; }, 360);
+      const button = $('#organize-btn'); button.disabled = true; button.textContent = '识别中…';
+      setTimeout(() => {
+        if (LedgerAI.isLikelyExpense(text)) { openLedger(); $('#ledger-smart-input').value = text; parseLedgerInput(); toast('已识别为记账，请确认后保存'); }
+        else showDraft(ActionAI.parse(text, selectedCategory));
+        button.disabled = false; button.textContent = '帮我整理';
+      }, 360);
     }
 
     const templates = {
