@@ -100,6 +100,7 @@
     .field-value { margin-top: 4px; color: var(--ink); font-size: 13px; line-height: 1.5; }
     .result-field .form-input { margin-top: 4px; padding: 5px 6px; border-color: transparent; background: rgba(255,255,255,.7); font-size: 13px; }
     .result-field .form-input:focus { border-color: var(--accent); }
+    .time-custom { margin-top: 6px; }
     .checklist { margin: 15px 0 0; padding: 13px 15px; border-radius: 12px; background: var(--green-soft); color: var(--sub); font-size: 13px; line-height: 1.7; }
     .checklist strong { color: var(--ink); font-weight: 500; }
     .checklist-input { width: 100%; min-height: 52px; margin-top: 7px; padding: 8px; border: 1px solid transparent; border-radius: 9px; resize: vertical; background: rgba(255,255,255,.62); color: var(--ink); outline: none; font-size: 13px; line-height: 1.6; }
@@ -158,6 +159,13 @@
     .ledger-form-grid .form-label { margin-top: 0; }
     .ledger-form-full { grid-column: 1 / -1; }
     .ledger-submit { width: 100%; margin-top: 16px; }
+    .ledger-smart { margin-top: 15px; padding: 13px 14px; border: 1px solid rgba(197,139,99,.25); border-radius: 14px; background: var(--accent-soft); }
+    .ledger-smart-label { color: var(--ink); font-size: 13px; font-weight: 600; }
+    .ledger-smart-input { width: 100%; min-height: 58px; margin-top: 8px; padding: 10px 11px; border: 1px solid transparent; border-radius: 12px; resize: vertical; background: rgba(255,255,255,.72); color: var(--ink); outline: none; font-size: 14px; line-height: 1.6; }
+    .ledger-smart-input:focus { border-color: var(--accent); }
+    .ledger-smart-actions { display: flex; align-items: center; justify-content: space-between; gap: 9px; margin-top: 8px; }
+    .ledger-smart-hint { color: var(--sub); font-size: 11px; line-height: 1.5; }
+    .ledger-smart-status { margin: 7px 0 0; color: var(--green); font-size: 12px; line-height: 1.5; }
     #toast { position: fixed; left: 50%; top: 50%; z-index: 100; transform: translate(-50%, -50%) scale(.94); opacity: 0; pointer-events: none; padding: 11px 18px; border-radius: 12px; background: rgba(76,64,56,.93); color: white; font-size: 13px; transition: all .2s; }
     #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     @media (max-width: 380px) { .date-label { display: none; } .topbar { padding-top: 34px; } .install-trigger { font-size: 12px; min-height: 38px; } }
@@ -254,7 +262,7 @@
             <div class="result-field"><div class="field-label">类别</div><select id="result-category" class="form-input"><option value="childcare">育儿</option><option value="family">家庭</option><option value="shopping">购物</option><option value="other">其他</option></select></div>
             <div class="result-field"><div class="field-label">负责人</div><select id="result-owner" class="form-input"><option value="">暂不指定</option><option value="我">我</option><option value="爸爸">爸爸</option><option value="妈妈">妈妈</option><option value="爷爷">爷爷</option><option value="奶奶">奶奶</option><option value="外公">外公</option><option value="外婆">外婆</option></select></div>
             <div class="result-field"><div class="field-label">日期</div><input id="result-date-input" class="form-input" type="date"></div>
-            <div class="result-field"><div class="field-label">时间</div><input id="result-time-input" class="form-input" type="time"></div>
+            <div class="result-field"><div class="field-label">时间</div><select id="result-time-input" class="form-input"><option value="">不设置时间</option><option value="08:00">早上 8:00</option><option value="09:00">早上 9:00</option><option value="10:00">上午 10:00</option><option value="12:00">中午 12:00</option><option value="14:00">下午 2:00</option><option value="15:00">下午 3:00</option><option value="16:00">下午 4:00</option><option value="18:00">傍晚 6:00</option><option value="20:00">晚上 8:00</option><option value="custom">自定义时间</option></select><input id="result-custom-time" class="form-input time-custom" type="time" aria-label="自定义时间" hidden></div>
             <div class="result-field"><div class="field-label">提醒日期</div><input id="result-reminder-input" class="form-input" type="date"></div>
           </div>
           <div class="checklist"><strong>需要准备</strong><textarea id="result-checklist-input" class="checklist-input" placeholder="每行一项，例如：接种证&#10;社保卡"></textarea></div>
@@ -279,6 +287,7 @@
       <section class="ledger-sheet" role="dialog" aria-modal="true" aria-labelledby="ledger-form-title">
         <div class="sheet-handle"></div>
         <div class="sheet-head"><h2 class="sheet-title" id="ledger-form-title">记一笔家庭支出</h2><button class="close" id="close-ledger" aria-label="关闭记账">×</button></div>
+        <div class="ledger-smart"><div class="ledger-smart-label">也可以直接说一句</div><textarea id="ledger-smart-input" class="ledger-smart-input" rows="2" placeholder="例如：今天买菜花了 86 元，妈妈付的"></textarea><div class="ledger-smart-actions"><span class="ledger-smart-hint">我会帮你填好金额、日期、类别和支付人</span><button class="text-btn" id="ledger-parse-btn">帮我填好</button></div><p class="ledger-smart-status" id="ledger-smart-status" aria-live="polite"></p></div>
         <div class="ledger-form-grid">
           <div><label class="form-label" for="ledger-amount">金额</label><input id="ledger-amount" class="form-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例如 35.8"></div>
           <div><label class="form-label" for="ledger-date">日期</label><input id="ledger-date" class="form-input" type="date"></div>
@@ -366,11 +375,23 @@
       $('#ledger-list').innerHTML = list.length ? list.map(item => `<div class="ledger-item"><div class="ledger-icon">${ledgerCategoryIcons[item.category] || '🧾'}</div><div class="ledger-main"><div class="ledger-note">${escapeHtml(item.note || ledgerCategoryLabels[item.category] || '家庭支出')}</div><div class="ledger-meta">${escapeHtml(item.date || '')} · ${escapeHtml(ledgerCategoryLabels[item.category] || '其他')} · ${escapeHtml(item.payer || '我')}支付</div></div><div class="ledger-amount">${money(item.amount)}</div><button class="ledger-remove" data-ledger-remove="${item.id}" aria-label="删除这笔支出">×</button></div>`).join('') : '<div class="empty"><div class="empty-icon">🧾</div>还没有记过账。<br>先记下第一笔家庭支出吧。</div>';
       $$('[data-ledger-remove]').forEach(button => button.onclick = () => { Ledger.remove(button.dataset.ledgerRemove); renderLedger(); toast('已删除这笔支出'); });
     }
-    function openLedger() { $('#ledger-date').value = localDateKey(); $('#ledger-amount').value = ''; $('#ledger-note').value = ''; $('#ledger-backdrop').classList.add('show'); setTimeout(() => $('#ledger-amount').focus(), 100); }
+    function openLedger() { $('#ledger-date').value = localDateKey(); $('#ledger-amount').value = ''; $('#ledger-note').value = ''; $('#ledger-smart-input').value = ''; $('#ledger-smart-status').textContent = ''; $('#ledger-category').value = 'food'; $('#ledger-payer').value = '我'; $('#ledger-backdrop').classList.add('show'); setTimeout(() => $('#ledger-smart-input').focus(), 100); }
     function closeLedger() { $('#ledger-backdrop').classList.remove('show'); }
+    function parseLedgerInput() {
+      const raw = $('#ledger-smart-input').value.trim();
+      if (!raw) { toast('先说一笔家庭支出吧'); $('#ledger-smart-input').focus(); return; }
+      const parsed = LedgerAI.parse(raw);
+      if (!parsed.amount) { $('#ledger-smart-status').textContent = '我还没识别到金额，请补充“花了多少元”。'; $('#ledger-amount').focus(); return; }
+      $('#ledger-amount').value = parsed.amount;
+      $('#ledger-date').value = parsed.date;
+      $('#ledger-category').value = parsed.category;
+      $('#ledger-payer').value = parsed.payer;
+      $('#ledger-note').value = parsed.note;
+      $('#ledger-smart-status').textContent = `已识别：${money(parsed.amount)} · ${ledgerCategoryLabels[parsed.category] || '其他'} · ${parsed.payer}支付`;
+    }
     function saveLedger() {
       const amount = Number($('#ledger-amount').value);
-      if (!amount || amount < 0) { toast('先填一个支出金额'); $('#ledger-amount').focus(); return; }
+      if (!Number.isFinite(amount) || amount <= 0) { toast('先填一个有效的支出金额'); $('#ledger-amount').focus(); return; }
       const expense = { amount: Math.round(amount * 100) / 100, date: $('#ledger-date').value || localDateKey(), category: $('#ledger-category').value, payer: $('#ledger-payer').value, note: $('#ledger-note').value.trim() };
       if (Ledger.add(expense)) { closeLedger(); renderLedger(); toast('已记下这笔支出'); }
     }
@@ -414,7 +435,8 @@
     }
 
     async function shareTask(task) {
-      const checklist = task.checklist.length ? `\n需要准备：${task.checklist.join('、')}` : '';
+      const checklistItems = Array.isArray(task.checklist) ? task.checklist : [];
+      const checklist = checklistItems.length ? `\n需要准备：${checklistItems.join('、')}` : '';
       const owner = task.owner || (task.people && task.people[0]);
       const text = `${owner ? `【${owner}】` : '【家庭事项】'} ${task.title}\n时间：${task.date ? dateLabel(task.date) : '待安排'}${task.reminderDate ? `\n提醒：${dateLabel(task.reminderDate)}` : ''}${checklist}`;
       if (navigator.share) { try { await navigator.share({ title: '家庭事项', text }); return; } catch (e) { if (e.name === 'AbortError') return; } }
@@ -423,7 +445,8 @@
 
     function taskHtml(task) {
       const owner = task.owner || (task.people && task.people[0]) || '';
-      const checklist = task.checklist.length ? `<ul>${task.checklist.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : '';
+      const checklistItems = Array.isArray(task.checklist) ? task.checklist : [];
+      const checklist = checklistItems.length ? `<ul>${checklistItems.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>` : '';
       const detail = owner || checklist ? `<div class="task-detail">${owner ? `负责人：${escapeHtml(owner)}` : ''}${checklist}</div>` : '';
       return `<article class="task-card ${task.done ? 'done' : ''}"><div class="task-top"><button class="check ${task.done ? 'checked' : ''}" data-toggle="${task.id}" aria-label="${task.done ? '取消完成' : '标记完成'}">${task.done ? '✓' : ''}</button><div class="task-main"><div class="task-title">${escapeHtml(task.title)}</div><div class="task-meta"><span class="tag">${escapeHtml(task.categoryLabel)}</span><span class="tag">${escapeHtml(task.date ? dateLabel(task.date) : '待安排')}</span>${owner ? `<span class="tag">${escapeHtml(owner)}负责</span>` : ''}${task.reminderDate ? `<span class="tag reminder">提前提醒</span>` : ''}</div></div></div>${detail}<div class="task-footer"><button class="text-btn" data-calendar="${task.id}">加入日历</button><button class="text-btn" data-share="${task.id}">分享</button><button class="text-btn danger" data-remove="${task.id}">删除</button></div></article>`;
     }
@@ -434,8 +457,8 @@
       const todayKey = localDateKey(today);
       const nextWeek = new Date(today);
       nextWeek.setDate(nextWeek.getDate() + 7);
-      const nextWeekKey = nextWeek.toISOString().slice(0, 10);
-      const todayTasks = tasks.filter(task => !task.done && (!task.date || task.date <= todayKey));
+      const nextWeekKey = localDateKey(nextWeek);
+      const todayTasks = tasks.filter(task => !task.done && task.date && task.date <= todayKey);
       const upcomingTasks = tasks.filter(task => !task.done && task.date && task.date > todayKey && task.date <= nextWeekKey);
       const unscheduledTasks = tasks.filter(task => !task.done && !task.date);
       $('#today-list').innerHTML = todayTasks.length ? todayTasks.map(taskHtml).join('') : `<div class="empty"><div class="empty-icon">${moodEmoji}</div>今天暂时没有待办。<br>把刚刚想起的事告诉我吧。</div>`;
@@ -460,14 +483,29 @@
 
     function showDraft(task) {
       draft = task;
+      const people = Array.isArray(task.people) ? task.people : [];
+      const checklist = Array.isArray(task.checklist) ? task.checklist : [];
       $('#result-title-input').value = task.title;
       $('#result-category').value = task.category;
-      $('#result-owner').value = task.owner || task.people[0] || '';
+      $('#result-owner').value = task.owner || people[0] || '';
       $('#result-date-input').value = task.date || '';
-      $('#result-time-input').value = task.time || '';
+      setTimeField(task.time || '');
       $('#result-reminder-input').value = task.reminderDate || '';
-      $('#result-checklist-input').value = task.checklist.join('\n');
+      $('#result-checklist-input').value = checklist.join('\n');
       $('#result-backdrop').classList.add('show');
+    }
+
+    function setTimeField(value = '') {
+      const select = $('#result-time-input');
+      const custom = $('#result-custom-time');
+      const hasPreset = [...select.options].some(option => option.value === value);
+      if (value && !hasPreset) { select.value = 'custom'; custom.value = value; custom.hidden = false; }
+      else { select.value = value || ''; custom.value = ''; custom.hidden = true; }
+    }
+
+    function selectedTimeValue() {
+      const select = $('#result-time-input');
+      return select.value === 'custom' ? $('#result-custom-time').value : select.value;
     }
 
     function closeResult() { $('#result-backdrop').classList.remove('show'); draft = null; }
@@ -492,7 +530,7 @@
       draft.categoryLabel = ActionAI.categoryLabels[draft.category] || '其他';
       draft.owner = $('#result-owner').value;
       draft.date = $('#result-date-input').value;
-      draft.time = $('#result-time-input').value;
+      draft.time = selectedTimeValue();
       draft.reminderDate = $('#result-reminder-input').value;
       draft.checklist = $('#result-checklist-input').value.split(/\n|、|,/).map(item => item.trim()).filter(Boolean);
     }
@@ -506,7 +544,8 @@
       $('#organize-btn').onclick = organize;
       $('#close-result').onclick = closeResult;
       $('#result-backdrop').onclick = event => { if (event.target === $('#result-backdrop')) closeResult(); };
-      ['result-title-input', 'result-category', 'result-owner', 'result-date-input', 'result-time-input', 'result-reminder-input', 'result-checklist-input'].forEach(id => { $('#' + id).addEventListener('input', syncDraftFromForm); });
+      ['result-title-input', 'result-category', 'result-owner', 'result-date-input', 'result-time-input', 'result-reminder-input', 'result-checklist-input', 'result-custom-time'].forEach(id => { $('#' + id).addEventListener('input', syncDraftFromForm); $('#' + id).addEventListener('change', syncDraftFromForm); });
+      $('#result-time-input').addEventListener('change', () => { $('#result-custom-time').hidden = $('#result-time-input').value !== 'custom'; syncDraftFromForm(); });
       $('#calendar-btn').onclick = () => { if (draft) { syncDraftFromForm(); calendarFile(draft); } };
       $('#share-btn').onclick = () => { if (draft) { syncDraftFromForm(); shareTask(draft); } };
       $('#save-btn').onclick = () => { if (!draft) return; syncDraftFromForm(); if (State.add({ ...draft })) { closeResult(); $('#main-input').value = ''; render(); toast('已保存到家庭事项'); } };
@@ -524,6 +563,7 @@
       $('#close-ledger').onclick = closeLedger;
       $('#ledger-backdrop').onclick = event => { if (event.target === $('#ledger-backdrop')) closeLedger(); };
       $('#save-ledger-btn').onclick = saveLedger;
+      $('#ledger-parse-btn').onclick = parseLedgerInput;
       $$('[data-panel]').forEach(button => button.onclick = () => setActivePanel(button.dataset.panel));
       $('#ledger-summary-btn').onclick = () => { setActivePanel('ledger'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
       $('#todo-summary-btn').onclick = () => { setActivePanel('todo'); $('#today-list').scrollIntoView({ behavior: 'smooth', block: 'start' }); };

@@ -7,7 +7,10 @@ const ActionAI = {
   categoryLabels: { childcare: '育儿', family: '家庭', shopping: '购物', other: '其他' },
 
   _dateOnly(date) {
-    return date.toISOString().slice(0, 10);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   },
 
   _addDays(date, days) {
@@ -16,11 +19,11 @@ const ActionAI = {
     return next;
   },
 
-  _nextWeekday(target, forceNextWeek = false) {
+  _nextWeekday(target) {
     const today = new Date();
     const current = today.getDay();
     let diff = (target - current + 7) % 7;
-    if (diff === 0 || forceNextWeek) diff += 7;
+    if (diff === 0) diff += 7;
     return this._addDays(today, diff);
   },
 
@@ -148,4 +151,57 @@ const ActionAI = {
   }
 };
 
+const LedgerAI = {
+  categoryLabels: { food: '买菜 / 餐饮', baby: '宝宝用品', medical: '医疗 / 药品', shopping: '日用 / 购物', transport: '交通', other: '其他' },
+
+  _dateOnly(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  },
+
+  _dateFromText(text) {
+    const now = new Date();
+    const relative = text.match(/今天|昨天|前天|明天/);
+    if (relative) {
+      const offset = { 今天: 0, 昨天: -1, 前天: -2, 明天: 1 }[relative[0]];
+      const date = new Date(now);
+      date.setDate(date.getDate() + offset);
+      return this._dateOnly(date);
+    }
+    const fullDate = text.match(/(?:(20\d{2})[-年])?(\d{1,2})[-月](\d{1,2})[日号]?/);
+    if (fullDate) {
+      const date = new Date(Number(fullDate[1] || now.getFullYear()), Number(fullDate[2]) - 1, Number(fullDate[3]));
+      return this._dateOnly(date);
+    }
+    return this._dateOnly(now);
+  },
+
+  parse(text) {
+    const raw = String(text || '').trim();
+    const withUnit = [...raw.matchAll(/(?:¥|￥)?\s*(\d+(?:\.\d{1,2})?)\s*(?:元|块钱|块|人民币)/g)];
+    const withVerb = [...raw.matchAll(/(?:花了|用了|支付了|付款了|消费了|共|总共|买了|买)\s*(?:¥|￥)?\s*(\d+(?:\.\d{1,2})?)/g)];
+    const amountMatch = withUnit[withUnit.length - 1] || withVerb[withVerb.length - 1];
+    const amount = amountMatch ? Number(amountMatch[1]) : 0;
+    let category = 'other';
+    if (/奶粉|尿布|纸尿裤|宝宝|辅食|玩具|童车/.test(raw)) category = 'baby';
+    else if (/医院|看病|药|挂号|医疗|体检/.test(raw)) category = 'medical';
+    else if (/打车|地铁|公交|停车|加油|交通/.test(raw)) category = 'transport';
+    else if (/买菜|吃饭|早餐|午餐|晚餐|餐厅|外卖/.test(raw)) category = 'food';
+    else if (/购物|日用|超市|购买|买/.test(raw)) category = 'shopping';
+    const payerMatch = raw.match(/爸爸|妈妈|共同|我/);
+    const payer = payerMatch ? payerMatch[0] : '我';
+    const amountPattern = /(?:花了|用了|支付了|付款了|消费了|共|总共|买了|买)?\s*(?:¥|￥)?\s*\d+(?:\.\d{1,2})?\s*(?:元|块钱|块|人民币)?/g;
+    const note = raw
+      .replace(/20\d{2}[-年]\d{1,2}[-月]\d{1,2}[日]?|\d{1,2}月\d{1,2}[日号]?/g, '')
+      .replace(/今天|昨天|前天|明天/g, '')
+      .replace(amountPattern, '')
+      .replace(/(?:爸爸|妈妈|共同|我)\s*(?:付的|支付|付款|付了)?/g, '')
+      .replace(/[，,。；;：:]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 40);
+    return { amount, date: this._dateFromText(raw), category, payer, note: note || this.categoryLabels[category] };
+  }
+};
+
 if (typeof window !== 'undefined') window.ActionAI = ActionAI;
+if (typeof window !== 'undefined') window.LedgerAI = LedgerAI;
