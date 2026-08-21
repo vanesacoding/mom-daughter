@@ -25,7 +25,7 @@
     .screen { min-height: 100vh; padding: 0 20px 44px; overflow-y: auto; }
     .topbar { padding: 42px 4px 20px; display: flex; justify-content: space-between; align-items: flex-end; }
     .topbar-actions { display: flex; align-items: center; gap: 8px; }
-    .brand-kicker { color: var(--hint); font-size: 11px; letter-spacing: 2px; font-weight: 600; }
+    .brand-kicker { color: var(--hint); font-size: 11px; letter-spacing: 1.5px; font-weight: 600; }
     .brand { margin: 6px 0 0; font-family: var(--serif); font-size: 26px; letter-spacing: 1px; }
     .date-label { color: var(--hint); font-size: 12px; }
     .install-trigger { border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; background: rgba(255,253,250,.72); color: var(--sub); font-size: 11px; white-space: nowrap; }
@@ -33,7 +33,7 @@
     .install-trigger[hidden] { display: none; }
     .hero { padding: 24px 20px 20px; background: linear-gradient(145deg, #fffdf9, #f3e4d7); border: 1px solid rgba(184,135,98,.24); border-radius: var(--radius); box-shadow: var(--shadow); }
     .hero-kicker { color: var(--accent); font-size: 12px; letter-spacing: 2px; font-weight: 600; }
-    .hero h1 { margin: 10px 0 6px; font-family: var(--serif); font-size: 28px; font-weight: 600; }
+    .hero h2 { margin: 10px 0 6px; font-family: var(--serif); font-size: 26px; line-height: 1.35; font-weight: 600; }
     .hero p { margin: 0 0 16px; color: var(--sub); font-size: 13px; line-height: 1.7; }
     .input-wrap { background: var(--card); border: 1px solid var(--line); border-radius: var(--small-radius); overflow: hidden; }
     .main-input { width: 100%; min-height: 108px; padding: 15px; border: 0; resize: none; outline: none; color: var(--ink); background: transparent; line-height: 1.7; }
@@ -50,6 +50,12 @@
     .template-row { display: flex; gap: 7px; overflow-x: auto; padding-top: 10px; scrollbar-width: none; }
     .template-row::-webkit-scrollbar { display: none; }
     .template { flex: 0 0 auto; padding: 8px 10px; border: 1px solid rgba(184,135,98,.26); border-radius: 999px; background: rgba(255,255,255,.55); color: var(--sub); font-size: 12px; }
+    .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .dashboard-card { display: flex; align-items: center; justify-content: space-between; min-height: 66px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 17px; background: rgba(255,253,250,.78); color: var(--ink); text-align: left; box-shadow: 0 6px 18px rgba(145,114,88,.06); }
+    .dashboard-card:active { transform: translateY(1px); }
+    .dashboard-label { color: var(--sub); font-size: 12px; }
+    .dashboard-value { display: block; margin-top: 4px; font-family: var(--serif); font-size: 19px; }
+    .dashboard-arrow { color: var(--hint); font-size: 18px; }
     .section-head { display: flex; align-items: center; justify-content: space-between; margin: 28px 3px 12px; }
     .section-title { font-family: var(--serif); font-size: 19px; }
     .section-count { color: var(--hint); font-size: 12px; }
@@ -111,8 +117,29 @@
     .form-label { display: block; margin: 16px 0 7px; color: var(--sub); font-size: 13px; }
     .form-input { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--card); color: var(--ink); outline: none; }
     .bottom-note { padding: 26px 4px 8px; color: var(--hint); font-size: 11px; line-height: 1.7; text-align: center; }
+    .ledger-section { margin-top: 10px; }
+    .ledger-summary { display: flex; align-items: center; justify-content: space-between; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, #fffdfa, #f4eadf); box-shadow: var(--shadow); }
+    .ledger-summary-label { color: var(--sub); font-size: 12px; }
+    .ledger-total { margin-top: 5px; font-family: var(--serif); font-size: 28px; }
+    .ledger-summary-note { color: var(--hint); font-size: 11px; }
+    .ledger-list { display: flex; flex-direction: column; gap: 8px; margin-top: 11px; }
+    .ledger-item { display: flex; align-items: center; gap: 11px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--card); }
+    .ledger-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: var(--accent-soft); font-size: 17px; flex: 0 0 auto; }
+    .ledger-main { min-width: 0; flex: 1; }
+    .ledger-note { overflow: hidden; color: var(--ink); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+    .ledger-meta { margin-top: 3px; color: var(--hint); font-size: 11px; }
+    .ledger-amount { color: var(--ink); font-size: 15px; font-weight: 600; }
+    .ledger-remove { border: 0; padding: 5px; background: transparent; color: var(--hint); font-size: 16px; }
+    .ledger-backdrop { position: fixed; inset: 0; display: none; align-items: flex-end; justify-content: center; background: rgba(60,46,38,.24); z-index: 35; }
+    .ledger-backdrop.show { display: flex; }
+    .ledger-sheet { width: 100%; max-width: 520px; padding: 18px 20px calc(24px + env(safe-area-inset-bottom)); background: var(--bg); border-radius: 26px 26px 0 0; }
+    .ledger-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 15px; }
+    .ledger-form-grid .form-label { margin-top: 0; }
+    .ledger-form-full { grid-column: 1 / -1; }
+    .ledger-submit { width: 100%; margin-top: 16px; }
     #toast { position: fixed; left: 50%; top: 50%; z-index: 100; transform: translate(-50%, -50%) scale(.94); opacity: 0; pointer-events: none; padding: 11px 18px; border-radius: 12px; background: rgba(76,64,56,.93); color: white; font-size: 13px; transition: all .2s; }
     #toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    @media (max-width: 380px) { .date-label { display: none; } .topbar { padding-top: 34px; } .install-trigger { font-size: 12px; min-height: 38px; } }
     @media (min-width: 521px) { .app { box-shadow: 0 0 40px rgba(145,114,88,.08); } }
   </style>
 </head>
@@ -120,7 +147,7 @@
   <main class="app">
     <section class="screen">
       <header class="topbar">
-        <div><div class="brand-kicker">AI 家庭行动助手</div><h1 class="brand">家事有着落</h1></div>
+        <div><div class="brand-kicker">家庭小管家 · 待办 + 记账</div><h1 class="brand">家事有着落</h1></div>
         <div class="topbar-actions"><button class="install-trigger" id="install-trigger" aria-haspopup="dialog">↥ 安装应用</button><div class="date-label" id="today-label"></div></div>
       </header>
 
@@ -153,6 +180,11 @@
         </div>
       </section>
 
+      <section class="dashboard" aria-label="家庭概览">
+        <button class="dashboard-card" id="todo-summary-btn"><span><span class="dashboard-label">未完成待办</span><strong class="dashboard-value" id="dashboard-task-count">0 件</strong></span><span class="dashboard-arrow">›</span></button>
+        <button class="dashboard-card" id="ledger-summary-btn"><span><span class="dashboard-label">本月家庭支出</span><strong class="dashboard-value" id="dashboard-month-total">¥0</strong></span><span class="dashboard-arrow">›</span></button>
+      </section>
+
       <div class="section-head"><h2 class="section-title">今天要做</h2><span class="section-count" id="task-count"></span></div>
       <div class="task-list" id="today-list"></div>
 
@@ -165,6 +197,11 @@
 
       <div class="section-head"><h2 class="section-title">全部事项</h2><span class="section-count" id="all-count"></span></div>
       <div class="task-list" id="all-list"></div>
+      <section class="ledger-section" id="ledger-section" aria-labelledby="ledger-title">
+        <div class="section-head"><h2 class="section-title" id="ledger-title">家庭记账</h2><button class="text-btn" id="add-ledger-btn">＋ 记一笔</button></div>
+        <div class="ledger-summary"><div><div class="ledger-summary-label" id="ledger-month-label">本月支出</div><div class="ledger-total" id="ledger-total">¥0</div></div><div class="ledger-summary-note">最近 5 笔</div></div>
+        <div class="ledger-list" id="ledger-list"></div>
+      </section>
       <div class="bottom-note">记录只保存在本机。日历提醒通过下载日历文件加入你的手机日历。</div>
     </section>
 
@@ -200,6 +237,20 @@
         <p class="install-status" id="install-status" aria-live="polite"></p>
       </section>
     </div>
+    <div class="ledger-backdrop" id="ledger-backdrop">
+      <section class="ledger-sheet" role="dialog" aria-modal="true" aria-labelledby="ledger-form-title">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head"><h2 class="sheet-title" id="ledger-form-title">记一笔家庭支出</h2><button class="close" id="close-ledger" aria-label="关闭记账">×</button></div>
+        <div class="ledger-form-grid">
+          <div><label class="form-label" for="ledger-amount">金额</label><input id="ledger-amount" class="form-input" type="number" min="0" step="0.01" inputmode="decimal" placeholder="例如 35.8"></div>
+          <div><label class="form-label" for="ledger-date">日期</label><input id="ledger-date" class="form-input" type="date"></div>
+          <div><label class="form-label" for="ledger-category">类别</label><select id="ledger-category" class="form-input"><option value="food">买菜 / 餐饮</option><option value="baby">宝宝用品</option><option value="medical">医疗 / 药品</option><option value="shopping">日用 / 购物</option><option value="transport">交通</option><option value="other">其他</option></select></div>
+          <div><label class="form-label" for="ledger-payer">谁支付</label><select id="ledger-payer" class="form-input"><option value="我">我</option><option value="爸爸">爸爸</option><option value="妈妈">妈妈</option><option value="共同">共同</option></select></div>
+          <div class="ledger-form-full"><label class="form-label" for="ledger-note">备注</label><input id="ledger-note" class="form-input" type="text" maxlength="40" placeholder="例如：宝宝奶粉、周末买菜"></div>
+        </div>
+        <button class="primary ledger-submit" id="save-ledger-btn">保存这笔支出</button>
+      </section>
+    </div>
     <div id="toast"></div>
   </main>
 
@@ -208,6 +259,7 @@
     const $ = (selector) => document.querySelector(selector);
     const $$ = (selector) => [...document.querySelectorAll(selector)];
     const STORE_KEY = 'family-action-assistant-store';
+    const LEDGER_KEY = 'family-action-assistant-ledger';
     let selectedCategory = 'auto';
     let draft = null;
     let deferredInstallPrompt = null;
@@ -221,6 +273,14 @@
       remove(id) { this.data.tasks = this.data.tasks.filter(item => item.id !== id); this.save(); }
     };
 
+    const Ledger = {
+      data: { expenses: [] },
+      load() { try { const raw = localStorage.getItem(LEDGER_KEY); if (raw) this.data = { expenses: [], ...JSON.parse(raw) }; } catch (e) { console.warn(e); } },
+      save() { try { localStorage.setItem(LEDGER_KEY, JSON.stringify(this.data)); return true; } catch (e) { toast('本机存储空间不足'); return false; } },
+      add(expense) { expense.id = 'expense-' + Date.now() + Math.random().toString(36).slice(2, 6); this.data.expenses.unshift(expense); return this.save(); },
+      remove(id) { this.data.expenses = this.data.expenses.filter(item => item.id !== id); this.save(); }
+    };
+
     const moodEmoji = '🌿';
     function formatDate(date = new Date()) { return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' }); }
     function dateLabel(value) { if (!value) return '未安排日期'; const date = new Date(`${value}T00:00:00`); return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' }); }
@@ -228,6 +288,34 @@
     function isAppInstalled() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
     function isIosDevice() { return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
     function isAndroidDevice() { return /android/i.test(navigator.userAgent); }
+    const ledgerCategoryLabels = { food: '买菜 / 餐饮', baby: '宝宝用品', medical: '医疗 / 药品', shopping: '日用 / 购物', transport: '交通', other: '其他' };
+    const ledgerCategoryIcons = { food: '🥣', baby: '🧸', medical: '💊', shopping: '🛍️', transport: '🚌', other: '🧾' };
+    function money(value) { return `¥${Number(value || 0).toFixed(2).replace(/\.00$/, '')}`; }
+    function localDateKey(date = new Date()) { const offset = date.getTimezoneOffset() * 60000; return new Date(date.getTime() - offset).toISOString().slice(0, 10); }
+    function monthKey(value = localDateKey()) { return value.slice(0, 7); }
+    function monthLabel(value = new Date()) { return value.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' }); }
+    function renderLedger() {
+      const expenses = Ledger.data.expenses || [];
+      const currentMonth = monthKey();
+      const monthExpenses = expenses.filter(item => monthKey(item.date) === currentMonth);
+      const total = monthExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      $('#ledger-month-label').textContent = `${monthLabel()}支出`;
+      $('#ledger-total').textContent = money(total);
+      $('#dashboard-month-total').textContent = money(total);
+      const list = expenses.slice(0, 5);
+      $('#ledger-list').innerHTML = list.length ? list.map(item => `<div class="ledger-item"><div class="ledger-icon">${ledgerCategoryIcons[item.category] || '🧾'}</div><div class="ledger-main"><div class="ledger-note">${escapeHtml(item.note || ledgerCategoryLabels[item.category] || '家庭支出')}</div><div class="ledger-meta">${escapeHtml(item.date || '')} · ${escapeHtml(ledgerCategoryLabels[item.category] || '其他')} · ${escapeHtml(item.payer || '我')}支付</div></div><div class="ledger-amount">${money(item.amount)}</div><button class="ledger-remove" data-ledger-remove="${item.id}" aria-label="删除这笔支出">×</button></div>`).join('') : '<div class="empty"><div class="empty-icon">🧾</div>还没有记过账。<br>先记下第一笔家庭支出吧。</div>';
+      $$('[data-ledger-remove]').forEach(button => button.onclick = () => { Ledger.remove(button.dataset.ledgerRemove); renderLedger(); toast('已删除这笔支出'); });
+      const pending = (State.data.tasks || []).filter(item => !item.done).length;
+      $('#dashboard-task-count').textContent = `${pending} 件`;
+    }
+    function openLedger() { $('#ledger-date').value = localDateKey(); $('#ledger-amount').value = ''; $('#ledger-note').value = ''; $('#ledger-backdrop').classList.add('show'); setTimeout(() => $('#ledger-amount').focus(), 100); }
+    function closeLedger() { $('#ledger-backdrop').classList.remove('show'); }
+    function saveLedger() {
+      const amount = Number($('#ledger-amount').value);
+      if (!amount || amount < 0) { toast('先填一个支出金额'); $('#ledger-amount').focus(); return; }
+      const expense = { amount: Math.round(amount * 100) / 100, date: $('#ledger-date').value || localDateKey(), category: $('#ledger-category').value, payer: $('#ledger-payer').value, note: $('#ledger-note').value.trim() };
+      if (Ledger.add(expense)) { closeLedger(); renderLedger(); toast('已记下这笔支出'); }
+    }
     function renderInstallGuide() {
       const nativeButton = $('#native-install-btn');
       const hint = $('#install-hint');
@@ -297,6 +385,7 @@
       $('#unscheduled-count').textContent = unscheduledTasks.length ? `${unscheduledTasks.length} 件` : '';
       $('#all-count').textContent = tasks.length ? `${tasks.length} 件` : '';
       bindTaskActions();
+      renderLedger();
     }
 
     function bindTaskActions() {
@@ -346,7 +435,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      State.load(); $('#today-label').textContent = formatDate(); render();
+      State.load(); Ledger.load(); $('#today-label').textContent = formatDate(); render();
       if (isAppInstalled()) $('#install-trigger').hidden = true;
       $$('#category-row .category').forEach(button => button.onclick = () => { selectedCategory = button.dataset.category; $$('#category-row .category').forEach(item => item.classList.toggle('selected', item === button)); });
       $$('.example').forEach(item => item.onclick = () => { $('#main-input').value = item.dataset.example; $('#main-input').focus(); });
@@ -368,6 +457,12 @@
         if (result.outcome === 'accepted') { $('#install-status').textContent = '正在安装，完成后可从桌面打开。'; closeInstallGuide(); }
         deferredInstallPrompt = null;
       };
+      $('#add-ledger-btn').onclick = openLedger;
+      $('#close-ledger').onclick = closeLedger;
+      $('#ledger-backdrop').onclick = event => { if (event.target === $('#ledger-backdrop')) closeLedger(); };
+      $('#save-ledger-btn').onclick = saveLedger;
+      $('#ledger-summary-btn').onclick = () => $('#ledger-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('#todo-summary-btn').onclick = () => $('#today-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
       if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
     });
     window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); deferredInstallPrompt = event; const button = $('#install-trigger'); if (button) button.classList.add('ready'); });

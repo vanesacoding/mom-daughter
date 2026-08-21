@@ -1,7 +1,7 @@
 {
   "name": "家事有着落",
   "short_name": "家事有着落",
-  "description": "说一句话，家里的事就有安排。",
+  "description": "家庭待办、记账和提醒，放在一起。",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f7f1ea",
