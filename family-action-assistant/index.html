@@ -31,6 +31,12 @@
     .install-trigger { border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; background: rgba(255,253,250,.72); color: var(--sub); font-size: 11px; white-space: nowrap; }
     .install-trigger.ready { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
     .install-trigger[hidden] { display: none; }
+    .mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin: 0 0 14px; padding: 4px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,253,250,.68); }
+    .mode-tab { min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--sub); font-size: 13px; }
+    .mode-tab.active { background: var(--ink); color: #fffaf5; box-shadow: 0 4px 10px rgba(76,64,56,.13); }
+    .view-panel[hidden] { display: none; }
+    .view-panel { animation: panel-in .18s ease-out; }
+    @keyframes panel-in { from { opacity: .5; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
     .hero { padding: 24px 20px 20px; background: linear-gradient(145deg, #fffdf9, #f3e4d7); border: 1px solid rgba(184,135,98,.24); border-radius: var(--radius); box-shadow: var(--shadow); }
     .hero-kicker { color: var(--accent); font-size: 12px; letter-spacing: 2px; font-weight: 600; }
     .hero h2 { margin: 10px 0 6px; font-family: var(--serif); font-size: 26px; line-height: 1.35; font-weight: 600; }
@@ -151,6 +157,12 @@
         <div class="topbar-actions"><button class="install-trigger" id="install-trigger" aria-haspopup="dialog">↥ 安装应用</button><div class="date-label" id="today-label"></div></div>
       </header>
 
+      <nav class="mode-tabs" aria-label="功能板块">
+        <button class="mode-tab active" data-panel="todo" aria-selected="true">待办事项</button>
+        <button class="mode-tab" data-panel="ledger" aria-selected="false">家庭记账</button>
+      </nav>
+
+      <section class="view-panel" id="todo-panel" data-panel-view="todo">
       <section class="hero">
         <div class="hero-kicker">把想起的事，变成做得到的事</div>
         <h2>把今天要做的事告诉我</h2>
@@ -197,10 +209,13 @@
 
       <div class="section-head"><h2 class="section-title">全部事项</h2><span class="section-count" id="all-count"></span></div>
       <div class="task-list" id="all-list"></div>
+      </section>
+      <section class="view-panel" id="ledger-panel" data-panel-view="ledger" hidden>
       <section class="ledger-section" id="ledger-section" aria-labelledby="ledger-title">
         <div class="section-head"><h2 class="section-title" id="ledger-title">家庭记账</h2><button class="text-btn" id="add-ledger-btn">＋ 记一笔</button></div>
         <div class="ledger-summary"><div><div class="ledger-summary-label" id="ledger-month-label">本月支出</div><div class="ledger-total" id="ledger-total">¥0</div></div><div class="ledger-summary-note">最近 5 笔</div></div>
         <div class="ledger-list" id="ledger-list"></div>
+      </section>
       </section>
       <div class="bottom-note">记录只保存在本机。日历提醒通过下载日历文件加入你的手机日历。</div>
     </section>
@@ -337,6 +352,10 @@
     }
     function openInstallGuide() { renderInstallGuide(); $('#install-backdrop').classList.add('show'); }
     function closeInstallGuide() { $('#install-backdrop').classList.remove('show'); }
+    function setActivePanel(panel) {
+      $$('[data-panel-view]').forEach(view => { view.hidden = view.dataset.panelView !== panel; });
+      $$('[data-panel]').forEach(button => { const active = button.dataset.panel === panel; button.classList.toggle('active', active); button.setAttribute('aria-selected', active ? 'true' : 'false'); });
+    }
     function escapeHtml(value = '') { return String(value).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c])); }
     function icsEscape(value = '') { return String(value).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
     function downloadBlob(filename, blob) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(url), 800); }
@@ -461,8 +480,9 @@
       $('#close-ledger').onclick = closeLedger;
       $('#ledger-backdrop').onclick = event => { if (event.target === $('#ledger-backdrop')) closeLedger(); };
       $('#save-ledger-btn').onclick = saveLedger;
-      $('#ledger-summary-btn').onclick = () => $('#ledger-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      $('#todo-summary-btn').onclick = () => $('#today-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $$('[data-panel]').forEach(button => button.onclick = () => setActivePanel(button.dataset.panel));
+      $('#ledger-summary-btn').onclick = () => { setActivePanel('ledger'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+      $('#todo-summary-btn').onclick = () => { setActivePanel('todo'); $('#today-list').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
       if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js').catch(() => {});
     });
     window.addEventListener('beforeinstallprompt', event => { event.preventDefault(); deferredInstallPrompt = event; const button = $('#install-trigger'); if (button) button.classList.add('ready'); });
