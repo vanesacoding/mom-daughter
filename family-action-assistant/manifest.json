@@ -4,8 +4,8 @@
   "description": "家庭待办、记账和提醒，放在一起。",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f7f1ea",
-  "theme_color": "#f5eee6",
+  "background_color": "#F7F4EC",
+  "theme_color": "#41644A",
   "lang": "zh-CN",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
