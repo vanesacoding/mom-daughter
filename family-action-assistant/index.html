@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#41644A">
-  <meta name="description" content="家事有着落：说一句话，家里的事就有安排。">
+  <meta name="description" content="家事有着落：告诉我今天发生了什么，家里的事就有安排。">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <title>家事有着落</title>
@@ -44,6 +44,11 @@
     .input-wrap { background: var(--card); border: 1px solid var(--line); border-radius: var(--small-radius); overflow: hidden; }
     .main-input { width: 100%; min-height: 108px; padding: 15px; border: 0; resize: none; outline: none; color: var(--ink); background: transparent; line-height: 1.7; }
     .main-input::placeholder { color: var(--hint); }
+    .input-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 12px 11px 15px; }
+    .voice-hint { min-height: 18px; color: var(--hint); font-size: 12px; line-height: 1.5; }
+    .voice-btn { min-height: 40px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: var(--green-soft); color: var(--green-deep); font-size: 13px; white-space: nowrap; }
+    .voice-btn.listening { border-color: var(--accent); background: var(--accent-soft); color: #8A5633; }
+    .voice-btn.unsupported { opacity: .55; cursor: not-allowed; }
     .hero-actions { display: block; margin-top: 12px; }
     #organize-btn { width: 100%; margin-top: 10px; }
     .category-row { display: flex; flex-wrap: wrap; gap: 7px; width: 100%; }
@@ -187,11 +192,12 @@
 
       <section class="view-panel" id="todo-panel" role="tabpanel" aria-labelledby="todo-tab" data-panel-view="todo">
       <section class="hero">
-        <div class="hero-kicker">说一句话，自动判断是待办还是记账</div>
-        <h2>把今天要做的事告诉我</h2>
-        <p>带日期的是待办，带金额的是记账。</p>
+        <div class="hero-kicker">今天发生了什么</div>
+        <h2>告诉我，家里的事我来记</h2>
+        <p>待办、花销，甚至几件事一起说，我会帮你分开记好。</p>
         <div class="input-wrap">
-          <textarea id="main-input" class="main-input" rows="4" placeholder="把想起的事告诉我……&#10;例如：明天带宝宝打疫苗，或今天买菜花了 86 元。"></textarea>
+          <textarea id="main-input" class="main-input" rows="4" placeholder="把今天发生的事告诉我……&#10;例如：给开心买衣服花了 300，提醒爸爸明天带她打疫苗"></textarea>
+          <div class="input-tools"><span class="voice-hint" id="voice-status" aria-live="polite">可以直接说，也可以打字</span><button type="button" class="voice-btn" id="voice-btn" aria-label="语音输入">🎙️ 说一说</button></div>
         </div>
         <div class="hero-actions">
           <div class="category-row" id="category-row">
@@ -207,6 +213,7 @@
           <span class="example" data-example="奶粉快没了，下班买两罐">买奶粉</span>
           <span class="example" data-example="明天提醒爸爸给宝宝洗澡">家庭分工</span>
           <span class="example" data-example="今天买菜花了86元，妈妈付的">买菜记账</span>
+          <span class="example" data-example="给开心买了一件衣服花了300，记得提醒爸爸明天还要带开心去打疫苗">一口气说两件事</span>
         </div>
         <div class="template-row" aria-label="常用育儿事项模板">
           <button class="template" data-template="checkup">🩺 宝宝体检</button>
@@ -311,6 +318,10 @@
     let selectedCategory = 'auto';
     let draft = null;
     let deferredInstallPrompt = null;
+    let pendingSmartQueue = [];
+    let pendingSmartSource = '';
+    let speechRecognition = null;
+    let speechListening = false;
 
     const State = {
       data: { tasks: [] },
@@ -377,7 +388,7 @@
       $$('[data-ledger-remove]').forEach(button => button.onclick = () => { Ledger.remove(button.dataset.ledgerRemove); renderLedger(); toast('已删除这笔支出'); });
     }
     function openLedger() { $('#ledger-date').value = localDateKey(); $('#ledger-amount').value = ''; $('#ledger-note').value = ''; $('#ledger-smart-input').value = ''; $('#ledger-smart-status').textContent = ''; $('#ledger-category').value = 'food'; $('#ledger-payer').value = '我'; $('#ledger-backdrop').classList.add('show'); setTimeout(() => $('#ledger-smart-input').focus(), 100); }
-    function closeLedger() { $('#ledger-backdrop').classList.remove('show'); }
+    function closeLedger(keepQueue = false) { $('#ledger-backdrop').classList.remove('show'); if (!keepQueue) { pendingSmartQueue = []; pendingSmartSource = ''; } }
     function parseLedgerInput() {
       const raw = $('#ledger-smart-input').value.trim();
       if (!raw) { toast('先说一笔家庭支出吧'); $('#ledger-smart-input').focus(); return; }
@@ -388,14 +399,26 @@
       $('#ledger-category').value = parsed.category;
       $('#ledger-payer').value = parsed.payer;
       $('#ledger-note').value = parsed.note;
-      $('#ledger-smart-status').textContent = `已识别：${money(parsed.amount)} · ${ledgerCategoryLabels[parsed.category] || '其他'} · ${parsed.payer}支付`;
+      const queueHint = pendingSmartQueue.length ? `（还有 ${pendingSmartQueue.length} 件待确认）` : '';
+      $('#ledger-smart-status').textContent = `已识别：${money(parsed.amount)} · ${ledgerCategoryLabels[parsed.category] || '其他'} · ${parsed.payer}支付${queueHint}`;
     }
     function saveLedger() {
       const amount = Number($('#ledger-amount').value);
       if (!Number.isFinite(amount) || amount <= 0) { toast('先填一个有效的支出金额'); $('#ledger-amount').focus(); return; }
       const expense = { amount: Math.round(amount * 100) / 100, date: $('#ledger-date').value || localDateKey(), category: $('#ledger-category').value, payer: $('#ledger-payer').value, note: $('#ledger-note').value.trim() };
       const smartText = $('#ledger-smart-input').value.trim();
-      if (Ledger.add(expense)) { if ($('#main-input').value.trim() === smartText) $('#main-input').value = ''; closeLedger(); renderLedger(); toast('已记下这笔支出'); }
+      if (Ledger.add(expense)) {
+        closeLedger(true);
+        renderLedger();
+        if (pendingSmartQueue.length) {
+          toast('记账已保存，请确认下一件事');
+          setTimeout(processNextSmartEntry, 120);
+        } else {
+          if ($('#main-input').value.trim() === pendingSmartSource || $('#main-input').value.trim() === smartText) $('#main-input').value = '';
+          pendingSmartSource = '';
+          toast('已记下这笔支出');
+        }
+      }
     }
     function renderInstallGuide() {
       const nativeButton = $('#native-install-btn');
@@ -510,14 +533,40 @@
       return select.value === 'custom' ? $('#result-custom-time').value : select.value;
     }
 
-    function closeResult() { $('#result-backdrop').classList.remove('show'); draft = null; }
+    function closeResult(keepQueue = false) {
+      $('#result-backdrop').classList.remove('show');
+      draft = null;
+      if (!keepQueue) { pendingSmartQueue = []; pendingSmartSource = ''; }
+    }
+
+    function processNextSmartEntry() {
+      const next = pendingSmartQueue.shift();
+      if (!next) {
+        $('#main-input').value = '';
+        pendingSmartSource = '';
+        render();
+        toast('都记好了');
+        return;
+      }
+      if (next.type === 'expense') {
+        openLedger();
+        $('#ledger-smart-input').value = next.text;
+        parseLedgerInput();
+        return;
+      }
+      showDraft(next.data);
+      if (pendingSmartQueue.length) toast(`已识别多件事情，请确认后继续（还剩 ${pendingSmartQueue.length} 件）`);
+    }
+
     function organize() {
       const text = $('#main-input').value.trim();
-      if (!text) { toast('先告诉我一件想做的事吧'); $('#main-input').focus(); return; }
+      if (!text) { toast('先告诉我今天发生了什么吧'); $('#main-input').focus(); return; }
       const button = $('#organize-btn'); button.disabled = true; button.textContent = '识别中…';
       setTimeout(() => {
-        if (LedgerAI.isLikelyExpense(text)) { openLedger(); $('#ledger-smart-input').value = text; parseLedgerInput(); toast('已识别为记账，请确认后保存'); }
-        else showDraft(ActionAI.parse(text, selectedCategory));
+        pendingSmartSource = text;
+        pendingSmartQueue = SmartEntryAI.parse(text, selectedCategory);
+        if (!pendingSmartQueue.length) { toast('我还没听清，可以再说一次吗？'); pendingSmartSource = ''; }
+        else processNextSmartEntry();
         button.disabled = false; button.textContent = '帮我整理';
       }, 360);
     }
@@ -528,6 +577,55 @@
       outing: { text: '今天带宝宝出门，准备纸巾、湿巾和水', category: 'childcare' },
       shopping: { text: '奶粉快没了，下班买两罐', category: 'shopping' }
     };
+
+    function initVoiceInput() {
+      const button = $('#voice-btn');
+      const status = $('#voice-status');
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!button || !status) return;
+      if (!SpeechRecognition) {
+        button.disabled = true;
+        button.classList.add('unsupported');
+        button.title = '当前浏览器不支持语音输入';
+        status.textContent = '当前浏览器暂不支持语音，请直接打字';
+        return;
+      }
+      speechRecognition = new SpeechRecognition();
+      speechRecognition.lang = 'zh-CN';
+      speechRecognition.continuous = false;
+      speechRecognition.interimResults = false;
+      speechRecognition.maxAlternatives = 1;
+      speechRecognition.onstart = () => {
+        speechListening = true;
+        button.classList.add('listening');
+        button.setAttribute('aria-pressed', 'true');
+        button.innerHTML = '⏹️ 停止听写';
+        status.textContent = '正在听，请说说今天发生了什么…';
+      };
+      speechRecognition.onresult = event => {
+        const transcript = [...event.results].map(result => result[0].transcript).join('').trim();
+        if (!transcript) return;
+        const input = $('#main-input');
+        const current = input.value.trim();
+        input.value = current ? `${current}${/[，。！？]$/.test(current) ? '' : '，'}${transcript}` : transcript;
+        input.focus();
+        status.textContent = '已经听到了，可以继续补充或点击“帮我整理”';
+      };
+      speechRecognition.onerror = event => {
+        const messages = { 'not-allowed': '麦克风权限未开启，请允许后再试', 'no-speech': '没有听清，可以再说一次', 'audio-capture': '没有找到可用的麦克风' };
+        status.textContent = messages[event.error] || '语音输入出了点问题，请再试一次';
+      };
+      speechRecognition.onend = () => {
+        speechListening = false;
+        button.classList.remove('listening');
+        button.setAttribute('aria-pressed', 'false');
+        button.innerHTML = '🎙️ 说一说';
+      };
+      button.onclick = () => {
+        if (speechListening) { speechRecognition.stop(); return; }
+        try { speechRecognition.start(); } catch (error) { status.textContent = '语音输入正在准备，请稍后再试'; }
+      };
+    }
 
     function syncDraftFromForm() {
       if (!draft) return;
@@ -548,13 +646,29 @@
       $$('.example').forEach(item => item.onclick = () => { $('#main-input').value = item.dataset.example; $('#main-input').focus(); });
       $$('.template').forEach(button => button.onclick = () => { const template = templates[button.dataset.template]; if (!template) return; $('#main-input').value = template.text; selectedCategory = template.category; $$('#category-row .category').forEach(item => item.classList.toggle('selected', item.dataset.category === selectedCategory)); $('#main-input').focus(); });
       $('#organize-btn').onclick = organize;
+      initVoiceInput();
       $('#close-result').onclick = closeResult;
       $('#result-backdrop').onclick = event => { if (event.target === $('#result-backdrop')) closeResult(); };
       ['result-title-input', 'result-category', 'result-owner', 'result-date-input', 'result-time-input', 'result-reminder-input', 'result-checklist-input', 'result-custom-time'].forEach(id => { $('#' + id).addEventListener('input', syncDraftFromForm); $('#' + id).addEventListener('change', syncDraftFromForm); });
       $('#result-time-input').addEventListener('change', () => { $('#result-custom-time').hidden = $('#result-time-input').value !== 'custom'; syncDraftFromForm(); });
       $('#calendar-btn').onclick = () => { if (draft) { syncDraftFromForm(); calendarFile(draft); } };
       $('#share-btn').onclick = () => { if (draft) { syncDraftFromForm(); shareTask(draft); } };
-      $('#save-btn').onclick = () => { if (!draft) return; syncDraftFromForm(); if (State.add({ ...draft })) { closeResult(); $('#main-input').value = ''; render(); toast('已保存到家庭事项'); } };
+      $('#save-btn').onclick = () => {
+        if (!draft) return;
+        syncDraftFromForm();
+        if (State.add({ ...draft })) {
+          closeResult(true);
+          render();
+          if (pendingSmartQueue.length) {
+            toast('待办已保存，请确认下一件事');
+            setTimeout(processNextSmartEntry, 120);
+          } else {
+            $('#main-input').value = '';
+            pendingSmartSource = '';
+            toast('已保存到家庭事项');
+          }
+        }
+      };
       $('#install-trigger').onclick = openInstallGuide;
       $('#close-install').onclick = closeInstallGuide;
       $('#install-backdrop').onclick = event => { if (event.target === $('#install-backdrop')) closeInstallGuide(); };

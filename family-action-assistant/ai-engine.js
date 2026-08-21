@@ -111,6 +111,8 @@ const ActionAI = {
   },
 
   makeTitle(text, category) {
+    const reminderAction = text.match(/还要带([^，。,.；;]+)/);
+    if (reminderAction && reminderAction[1].trim()) return `带${reminderAction[1].trim()}`;
     const shopping = text.match(/(?:买|购买|采购)([^，。,.；;]+)/);
     if (category === 'shopping' && /奶粉/.test(text)) return '购买奶粉';
     if (category === 'shopping' && shopping) return `购买${shopping[1].trim()}`.replace(/购买购买/, '购买');
@@ -209,5 +211,43 @@ const LedgerAI = {
   }
 };
 
+/*
+ * 首页统一入口解析器：先把一句话拆成几个自然语义片段，再分别交给
+ * 待办和记账规则。这样“买衣服花了 300，提醒爸爸明天打疫苗”不会被
+ * 整句误判成一笔记账。它仍然是零后端规则，后续可以替换为真正的 AI。
+ */
+const SmartEntryAI = {
+  _split(text) {
+    const raw = String(text || '').trim();
+    if (!raw) return [];
+    const normalized = raw
+      .replace(/(?:并且|另外|同时|然后)\s*(?=(?:记得|提醒|别忘了|还要|需要))/g, '，')
+      .replace(/\s+(?=(?:记得|提醒|别忘了|还要|需要))/g, '，');
+    const rawParts = normalized.split(/[，,。；;]+/).map(item => item.trim()).filter(Boolean);
+    const parts = [];
+    rawParts.forEach(part => {
+      const previous = parts[parts.length - 1];
+      const startsNewIntent = /^(?:记得|提醒|别忘了|还要|需要|明天|后天|下周|下星期|这周|本周|周[一二三四五六日天]|星期[一二三四五六日天])/.test(part);
+      if (previous && !startsNewIntent) parts[parts.length - 1] = `${previous}，${part}`;
+      else parts.push(part);
+    });
+    return parts;
+  },
+
+  parse(text, selectedCategory = 'auto') {
+    const parts = this._split(text);
+    const entries = [];
+    parts.forEach(part => {
+      if (LedgerAI.isLikelyExpense(part)) {
+        entries.push({ type: 'expense', text: part, data: LedgerAI.parse(part) });
+      } else {
+        entries.push({ type: 'task', text: part, data: ActionAI.parse(part, selectedCategory) });
+      }
+    });
+    return entries;
+  }
+};
+
 if (typeof window !== 'undefined') window.ActionAI = ActionAI;
 if (typeof window !== 'undefined') window.LedgerAI = LedgerAI;
+if (typeof window !== 'undefined') window.SmartEntryAI = SmartEntryAI;
