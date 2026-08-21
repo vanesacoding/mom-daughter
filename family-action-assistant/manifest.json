@@ -2,12 +2,22 @@
   "name": "家事有着落",
   "short_name": "家事有着落",
   "description": "家庭待办、记账和提醒，放在一起。",
+  "id": "./",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
   "background_color": "#F7F4EC",
   "theme_color": "#41644A",
   "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["lifestyle", "productivity"],
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "快速记录", "short_name": "快速记录", "url": "./?quick=1", "description": "记录今天发生的事" },
+    { "name": "记一笔", "short_name": "记一笔", "url": "./?ledger=1", "description": "记录一笔家庭支出" }
   ]
 }
