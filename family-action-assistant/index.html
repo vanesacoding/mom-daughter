@@ -127,6 +127,21 @@
     .ledger-summary-label { color: var(--sub); font-size: 12px; }
     .ledger-total { margin-top: 5px; font-family: var(--sans); font-size: 30px; font-weight: 700; }
     .ledger-summary-note { color: var(--hint); font-size: 11px; }
+    .ledger-insights { margin-top: 11px; }
+    .insight-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .insight-card { min-width: 0; padding: 12px 11px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+    .insight-label { overflow: hidden; color: var(--sub); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .insight-value { display: block; overflow: hidden; margin-top: 5px; color: var(--ink); font-size: 17px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .ledger-analysis { margin-top: 11px; padding: 15px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+    .analysis-head { display: flex; align-items: center; justify-content: space-between; }
+    .analysis-title { color: var(--ink); font-size: 14px; font-weight: 600; }
+    .analysis-note { color: var(--hint); font-size: 11px; }
+    .category-stat { margin-top: 13px; }
+    .category-stat-top { display: flex; justify-content: space-between; gap: 10px; color: var(--sub); font-size: 12px; }
+    .category-stat-value { color: var(--ink); font-weight: 600; }
+    .category-bar { height: 7px; margin-top: 6px; overflow: hidden; border-radius: 99px; background: #F1EAE2; }
+    .category-bar-fill { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .25s ease; }
+    .ledger-month-compare { margin: 14px 0 0; color: var(--hint); font-size: 12px; line-height: 1.6; }
     .ledger-list { display: flex; flex-direction: column; gap: 8px; margin-top: 11px; }
     .ledger-item { display: flex; align-items: center; gap: 11px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--card); }
     .ledger-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: var(--accent-soft); font-size: 17px; flex: 0 0 auto; }
@@ -213,6 +228,14 @@
       <section class="ledger-section" id="ledger-section" aria-labelledby="ledger-title">
         <div class="section-head"><h2 class="section-title" id="ledger-title">家庭记账</h2><button class="text-btn" id="add-ledger-btn">＋ 记一笔</button></div>
         <div class="ledger-summary"><div><div class="ledger-summary-label" id="ledger-month-label">本月支出</div><div class="ledger-total" id="ledger-total">¥0</div></div><div class="ledger-summary-note">最近 5 笔</div></div>
+        <div class="ledger-insights">
+          <div class="insight-grid">
+            <div class="insight-card"><span class="insight-label">本月笔数</span><strong class="insight-value" id="ledger-expense-count">0 笔</strong></div>
+            <div class="insight-card"><span class="insight-label">平均每笔</span><strong class="insight-value" id="ledger-average">¥0</strong></div>
+            <div class="insight-card"><span class="insight-label">最大支出</span><strong class="insight-value" id="ledger-largest">¥0</strong></div>
+          </div>
+          <div class="ledger-analysis"><div class="analysis-head"><span class="analysis-title">支出分类</span><span class="analysis-note">按金额占比</span></div><div id="ledger-category-breakdown"></div><p class="ledger-month-compare" id="ledger-month-compare"></p></div>
+        </div>
         <div class="ledger-list" id="ledger-list"></div>
       </section>
       </section>
@@ -308,6 +331,27 @@
     function localDateKey(date = new Date()) { const offset = date.getTimezoneOffset() * 60000; return new Date(date.getTime() - offset).toISOString().slice(0, 10); }
     function monthKey(value = localDateKey()) { return value.slice(0, 7); }
     function monthLabel(value = new Date()) { return value.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' }); }
+    function previousMonthKey(value = monthKey()) { const date = new Date(`${value}-01T00:00:00`); date.setMonth(date.getMonth() - 1); return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`; }
+    function ledgerMonthStats(expenses, key) {
+      const monthExpenses = expenses.filter(item => monthKey(item.date) === key);
+      const total = monthExpenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const categories = monthExpenses.reduce((result, item) => { result[item.category] = (result[item.category] || 0) + Number(item.amount || 0); return result; }, {});
+      return { expenses: monthExpenses, total, categories, largest: monthExpenses.reduce((max, item) => Math.max(max, Number(item.amount || 0)), 0) };
+    }
+    function renderLedgerStats() {
+      const expenses = Ledger.data.expenses || [];
+      const currentKey = monthKey();
+      const current = ledgerMonthStats(expenses, currentKey);
+      const previous = ledgerMonthStats(expenses, previousMonthKey(currentKey));
+      $('#ledger-expense-count').textContent = `${current.expenses.length} 笔`;
+      $('#ledger-average').textContent = money(current.expenses.length ? current.total / current.expenses.length : 0);
+      $('#ledger-largest').textContent = money(current.largest);
+      const categoryRows = Object.entries(current.categories).sort((a, b) => b[1] - a[1]);
+      $('#ledger-category-breakdown').innerHTML = categoryRows.length ? categoryRows.map(([category, value]) => { const percentage = current.total ? Math.round(value / current.total * 1000) / 10 : 0; return `<div class="category-stat"><div class="category-stat-top"><span>${escapeHtml(ledgerCategoryLabels[category] || '其他')}</span><span class="category-stat-value">${money(value)} · ${percentage}%</span></div><div class="category-bar"><div class="category-bar-fill" style="width:${Math.max(4, percentage)}%"></div></div></div>`; }).join('') : '<p class="ledger-month-compare">本月还没有支出，记下第一笔后这里会显示消费结构。</p>';
+      if (!previous.total) $('#ledger-month-compare').textContent = current.total ? '上月暂无记录，继续记录几笔后就能看到月度变化。' : '';
+      else if (current.total === previous.total) $('#ledger-month-compare').textContent = '本月支出与上月持平。';
+      else { const direction = current.total > previous.total ? '多' : '少'; const ratio = Math.round(Math.abs(current.total - previous.total) / previous.total * 100); $('#ledger-month-compare').textContent = `本月比上月${direction} ${money(Math.abs(current.total - previous.total))}（${ratio}%）。`; }
+    }
     function renderLedger() {
       const expenses = Ledger.data.expenses || [];
       const currentMonth = monthKey();
@@ -316,6 +360,7 @@
       $('#ledger-month-label').textContent = `${monthLabel()}支出`;
       $('#ledger-total').textContent = money(total);
       $('#dashboard-month-total').textContent = money(total);
+      renderLedgerStats();
       const list = expenses.slice(0, 5);
       $('#ledger-list').innerHTML = list.length ? list.map(item => `<div class="ledger-item"><div class="ledger-icon">${ledgerCategoryIcons[item.category] || '🧾'}</div><div class="ledger-main"><div class="ledger-note">${escapeHtml(item.note || ledgerCategoryLabels[item.category] || '家庭支出')}</div><div class="ledger-meta">${escapeHtml(item.date || '')} · ${escapeHtml(ledgerCategoryLabels[item.category] || '其他')} · ${escapeHtml(item.payer || '我')}支付</div></div><div class="ledger-amount">${money(item.amount)}</div><button class="ledger-remove" data-ledger-remove="${item.id}" aria-label="删除这笔支出">×</button></div>`).join('') : '<div class="empty"><div class="empty-icon">🧾</div>还没有记过账。<br>先记下第一笔家庭支出吧。</div>';
       $$('[data-ledger-remove]').forEach(button => button.onclick = () => { Ledger.remove(button.dataset.ledgerRemove); renderLedger(); toast('已删除这笔支出'); });
